@@ -29,17 +29,10 @@
 </head>
 <body>
     <div class="container">
-        <aside class="sidebar">
-            <div class="sidebar-header">فهرس المستندات</div>
-            <ul id="file-list"></ul>
-        </aside>
+        <aside class="sidebar"><div class="sidebar-header">فهرس المستندات</div><ul id="file-list"></ul></aside>
         <main class="main-content">
-            <div class="viewer-controls">
-                <a href="#" id="download-btn" download>📥 تحميل الملف</a>
-            </div>
-            <div id="viewer">
-                <div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div>
-            </div>
+            <div class="viewer-controls"><a href="#" id="download-btn" download>📥 تحميل الملف</a></div>
+            <div id="viewer"><div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div></div>
         </main>
     </div>
 
@@ -49,6 +42,10 @@
             const viewerElement = document.getElementById('viewer');
             const downloadBtn = document.getElementById('download-btn');
             const defaultFile = 'تعليمات.pdf';
+
+            // استخراج معلومات المستودع من رابط الصفحة الحالي
+            const username = window.location.hostname.split('.')[0];
+            const repo = window.location.pathname.split('/')[1];
 
             async function fetchAndDisplayFiles() {
                 try {
@@ -70,44 +67,40 @@
                     });
 
                     const defaultFileElement = Array.from(fileListElement.children).find(li => li.dataset.filename === defaultFile);
-                    if (defaultFileElement) {
-                        defaultFileElement.click();
-                    } else if (fileListElement.children.length > 0) {
-                        fileListElement.children[0].click();
-                    }
+                    if (defaultFileElement) { defaultFileElement.click(); } 
+                    else if (fileListElement.children.length > 0) { fileListElement.children[0].click(); }
                 } catch (error) {
                     viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل قائمة الملفات:<br>${error.message}</div>`;
                 }
             }
 
             function displayFile(filename) {
-                viewerElement.innerHTML = ''; // Clear previous content
+                viewerElement.innerHTML = `<div class="loader-message">جاري تحميل المعاينة...</div>`;
                 const fileExtension = filename.split('.').pop().toLowerCase();
-                const fileUrl = `documents/${filename}`;
+                const fileUrlForDownload = `documents/${filename}`;
 
-                // الحالة 1: إذا كان الملف PDF، اعرضه مباشرة في iframe
+                let viewerIframe;
+
+                // الحالة 1: ملفات PDF تُعرض مباشرةً
                 if (fileExtension === 'pdf') {
-                    viewerElement.innerHTML = `<iframe src="${fileUrl}"></iframe>`;
+                    viewerIframe = `<iframe src="${fileUrlForDownload}"></iframe>`;
                 } 
-                // الحالة 2: إذا كان الملف من نوع Office، اعرض رسالة واضحة
-                else if (['docx', 'pptx', 'xlsx'].includes(fileExtension)) {
-                    viewerElement.innerHTML = `<div class="loader-message">📄<br>المعاينة المباشرة لملفات Office غير ممكنة على هذه المنصة.<br>سيتم تنزيل الملف عند النقر على اسمه.</div>`;
-                    
-                    // Trigger download automatically
-                    const tempLink = document.createElement('a');
-                    tempLink.href = fileUrl;
-                    tempLink.download = filename;
-                    document.body.appendChild(tempLink);
-                    tempLink.click();
-                    document.body.removeChild(tempLink);
-                }
-                // الحالة 3: أي نوع ملف آخر
+                // الحالة 2: ملفات Office تُعرض عبر عارض مايكروسوفت باستخدام الرابط الخام
+                else if (['docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls'].includes(fileExtension)) {
+                    // بناء الرابط الخام الصحيح بناءً على اكتشافك
+                    const rawFileUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/documents/${encodeURIComponent(filename)}`;
+                    const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(rawFileUrl)}`;
+                    viewerIframe = `<iframe src="${viewerUrl}"></iframe>`;
+                } 
+                // الحالة 3: أنواع أخرى غير مدعومة
                 else {
-                    viewerElement.innerHTML = `<div class="loader-message">نوع الملف هذا غير مدعوم للعرض.</div>`;
+                    viewerIframe = `<div class="loader-message">نوع الملف هذا غير مدعوم للعرض.</div>`;
                 }
                 
-                // زر التحميل يعمل دائمًا لجميع أنواع الملفات
-                downloadBtn.href = fileUrl;
+                viewerElement.innerHTML = viewerIframe;
+                
+                // زر التحميل يعمل دائماً
+                downloadBtn.href = fileUrlForDownload;
                 downloadBtn.style.display = 'inline-block';
             }
 
