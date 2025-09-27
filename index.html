@@ -7,51 +7,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-
     <style>
-        :root {
-            --primary-color: #2c3e50; --secondary-color: #3498db; --bg-color: #ecf0f1;
-            --panel-bg: #ffffff; --border-color: #bdc3c7; --text-color: #34495e; --hover-bg: #f2f8fc;
-        }
-        body {
-            font-family: 'Cairo', sans-serif; margin: 0; background-color: var(--bg-color);
-            color: var(--text-color); display: flex; height: 100vh; overflow: hidden;
-        }
+        :root { --primary-color: #2c3e50; --secondary-color: #3498db; --bg-color: #ecf0f1; --panel-bg: #ffffff; --border-color: #bdc3c7; --text-color: #34495e; --hover-bg: #f2f8fc; }
+        body { font-family: 'Cairo', sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); display: flex; height: 100vh; overflow: hidden; }
         .container { display: flex; width: 100%; height: 100%; }
-        .sidebar {
-            width: 300px; background-color: var(--panel-bg); border-left: 1px solid var(--border-color);
-            display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
-        }
-        .sidebar-header {
-            padding: 20px; font-size: 1.5em; font-weight: 700; color: var(--primary-color);
-            border-bottom: 1px solid var(--border-color); text-align: center;
-        }
+        .sidebar { width: 300px; background-color: var(--panel-bg); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05); }
+        .sidebar-header { padding: 20px; font-size: 1.5em; font-weight: 700; color: var(--primary-color); border-bottom: 1px solid var(--border-color); text-align: center; }
         #file-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
-        #file-list li {
-            padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #eee; transition: all 0.2s ease;
-            font-size: 1.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
+        #file-list li { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #eee; transition: all 0.2s ease; font-size: 1.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #file-list li:hover { background-color: var(--hover-bg); color: var(--secondary-color); }
         #file-list li.active { background-color: var(--secondary-color); color: white; font-weight: 700; }
         .main-content { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
         .viewer-controls { margin-bottom: 15px; text-align: left; }
-        #download-btn {
-            display: none; padding: 10px 25px; background-color: var(--secondary-color); color: white;
-            text-decoration: none; border-radius: 5px; font-size: 1.1em; font-weight: 700;
-            transition: background-color 0.2s ease;
-        }
+        #download-btn { display: none; padding: 10px 25px; background-color: var(--secondary-color); color: white; text-decoration: none; border-radius: 5px; font-size: 1.1em; font-weight: 700; transition: background-color 0.2s ease; }
         #download-btn:hover { background-color: #2980b9; }
-        #viewer {
-            flex-grow: 1; background: #fff; border: 1px solid var(--border-color); border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); position: relative; display: flex;
-            justify-content: center; align-items: center;
-        }
+        #viewer { flex-grow: 1; background: #fff; border: 1px solid var(--border-color); border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); position: relative; display: flex; justify-content: center; align-items: center; }
         #viewer iframe { width: 100%; height: 100%; border: none; }
-        .loader-message { font-size: 1.5em; color: #999; text-align: center; }
-        @media (max-width: 768px) {
-            .container { flex-direction: column; }
-            .sidebar { width: 100%; height: 40%; border-left: none; border-bottom: 1px solid var(--border-color); }
-        }
+        .loader-message { font-size: 1.5em; color: #999; text-align: center; padding: 20px; }
+        @media (max-width: 768px) { .container { flex-direction: column; } .sidebar { width: 100%; height: 40%; border-left: none; border-bottom: 1px solid var(--border-color); } }
     </style>
 </head>
 <body>
@@ -108,25 +81,33 @@
             }
 
             function displayFile(filename) {
-                viewerElement.innerHTML = `<div class="loader-message">جاري تحميل المعاينة...</div>`;
-                
-                const fileOnServerUrl = new URL(`documents/${filename}`, window.location.href).href;
+                viewerElement.innerHTML = ''; // Clear previous content
+                const fileExtension = filename.split('.').pop().toLowerCase();
+                const fileUrl = `documents/${filename}`;
 
-                // --- هذا هو التغيير الوحيد والمهم ---
-                // استخدام عارض مايكروسوفت بدلاً من جوجل
-                const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileOnServerUrl)}`;
-
-                const iframe = document.createElement('iframe');
-                iframe.src = viewerUrl; // استخدام الرابط الجديد
-                iframe.onerror = () => {
-                    viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل المعاينة.<br>تأكد من أن المستودع عام وأن الملف موجود.</div>`;
+                // الحالة 1: إذا كان الملف PDF، اعرضه مباشرة في iframe
+                if (fileExtension === 'pdf') {
+                    viewerElement.innerHTML = `<iframe src="${fileUrl}"></iframe>`;
+                } 
+                // الحالة 2: إذا كان الملف من نوع Office، اعرض رسالة واضحة
+                else if (['docx', 'pptx', 'xlsx'].includes(fileExtension)) {
+                    viewerElement.innerHTML = `<div class="loader-message">📄<br>المعاينة المباشرة لملفات Office غير ممكنة على هذه المنصة.<br>سيتم تنزيل الملف عند النقر على اسمه.</div>`;
+                    
+                    // Trigger download automatically
+                    const tempLink = document.createElement('a');
+                    tempLink.href = fileUrl;
+                    tempLink.download = filename;
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
                 }
-                iframe.onload = () => {
-                    viewerElement.innerHTML = '';
-                    viewerElement.appendChild(iframe);
-                };
+                // الحالة 3: أي نوع ملف آخر
+                else {
+                    viewerElement.innerHTML = `<div class="loader-message">نوع الملف هذا غير مدعوم للعرض.</div>`;
+                }
                 
-                downloadBtn.href = `documents/${filename}`;
+                // زر التحميل يعمل دائمًا لجميع أنواع الملفات
+                downloadBtn.href = fileUrl;
                 downloadBtn.style.display = 'inline-block';
             }
 
