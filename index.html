@@ -110,16 +110,14 @@
             function displayFile(filename) {
                 viewerElement.innerHTML = `<div class="loader-message">جاري تحميل المعاينة...</div>`;
                 
-                // 1. بناء الرابط الكامل للملف. نستخدم اسم الملف كما هو بدون تشفير مبدئي.
-                // الدالة new URL() ذكية بما يكفي للتعامل مع الأحرف العربية في المسار.
                 const fileOnServerUrl = new URL(`documents/${filename}`, window.location.href).href;
 
-                // 2. الآن، نقوم بتشفير الرابط الكامل الناتج لنرسله كـ "پارامتر" إلى خدمة جوجل.
-                // هذا هو التصحيح الرئيسي.
-                const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fileOnServerUrl)}&embedded=true`;
+                // --- هذا هو التغيير الوحيد والمهم ---
+                // استخدام عارض مايكروسوفت بدلاً من جوجل
+                const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileOnServerUrl)}`;
 
                 const iframe = document.createElement('iframe');
-                iframe.src = googleViewerUrl;
+                iframe.src = viewerUrl; // استخدام الرابط الجديد
                 iframe.onerror = () => {
                     viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل المعاينة.<br>تأكد من أن المستودع عام وأن الملف موجود.</div>`;
                 }
@@ -128,7 +126,6 @@
                     viewerElement.appendChild(iframe);
                 };
                 
-                // رابط التحميل يستخدم المسار النسبي مباشرة
                 downloadBtn.href = `documents/${filename}`;
                 downloadBtn.style.display = 'inline-block';
             }
