@@ -18,26 +18,35 @@
         #file-list li:hover { background-color: var(--hover-bg); color: var(--secondary-color); }
         #file-list li.active { background-color: var(--secondary-color); color: white; font-weight: 700; }
         .main-content { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* --- التعديل هنا --- */
-        .viewer-controls {
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between; /* لدفع كل عنصر إلى طرف */
-            align-items: center; /* لمحاذاة العناصر عمودياً */
-            flex-wrap: wrap; /* للسماح بالالتفاف على الشاشات الصغيرة */
-        }
-        .viewer-controls h2 {
-            margin: 0;
-            font-size: 1.4em;
-            color: var(--primary-color);
-        }
-        
+        .viewer-controls { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .viewer-controls h2 { margin: 0; font-size: 1.4em; color: var(--primary-color); }
         #download-btn { display: none; padding: 10px 25px; background-color: var(--secondary-color); color: white; text-decoration: none; border-radius: 5px; font-size: 1.1em; font-weight: 700; transition: background-color 0.2s ease; }
         #download-btn:hover { background-color: #2980b9; }
         #viewer { flex-grow: 1; background: #fff; border: 1px solid var(--border-color); border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); position: relative; display: flex; justify-content: center; align-items: center; }
         #viewer iframe { width: 100%; height: 100%; border: none; }
         .loader-message { font-size: 1.5em; color: #999; text-align: center; padding: 20px; }
+        
+        /* --- التعديل هنا: إضافة تنسيق التذييل --- */
+        .footer {
+            padding: 10px 0 0 0;
+            text-align: center;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            border-top: 1px solid var(--border-color);
+            margin-top: 15px;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) { .container { flex-direction: column; } .sidebar { width: 100%; height: 40%; border-left: none; border-bottom: 1px solid var(--border-color); } }
     </style>
 </head>
@@ -49,8 +58,14 @@
                 <h2>عارض مستندات الاوفيس + pdf</h2>
                 <a href="#" id="download-btn" download>📥 تحميل الملف</a>
             </div>
-            
             <div id="viewer"><div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div></div>
+            
+            <!-- --- التعديل هنا: إضافة قسم التذييل --- -->
+            <footer class="footer">
+                <p>تمت برمجته باستخدام <a href="https://gemini.google.com" target="_blank">Gemini</a></p>
+                <p><a href="https://t.me/ITG_KSA" target="_blank">ملتقى التعليم التفاعلي</a></p>
+            </footer>
+
         </main>
     </div>
 
@@ -118,3 +133,4 @@
     </script>
 </body>
 </html>
+
