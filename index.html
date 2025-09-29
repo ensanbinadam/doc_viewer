@@ -1,120 +1,281 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>مستعرض المستندات</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
-        :root { --primary-color: #2c3e50; --secondary-color: #3498db; --bg-color: #ecf0f1; --panel-bg: #ffffff; --border-color: #bdc3c7; --text-color: #34495e; --hover-bg: #f2f8fc; }
-        body { font-family: 'Cairo', sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); display: flex; height: 100vh; overflow: hidden; }
-        .container { display: flex; width: 100%; height: 100%; }
-        .sidebar { width: 300px; background-color: var(--panel-bg); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05); }
-        .sidebar-header { padding: 20px; font-size: 1.5em; font-weight: 700; color: var(--primary-color); border-bottom: 1px solid var(--border-color); text-align: center; }
-        #file-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
-        #file-list li { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #eee; transition: all 0.2s ease; font-size: 1.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #file-list li:hover { background-color: var(--hover-bg); color: var(--secondary-color); }
-        #file-list li.active { background-color: var(--secondary-color); color: white; font-weight: 700; }
-        .main-content { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* --- التعديل هنا --- */
-        .viewer-controls {
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between; /* لدفع كل عنصر إلى طرف */
-            align-items: center; /* لمحاذاة العناصر عمودياً */
-            flex-wrap: wrap; /* للسماح بالالتفاف على الشاشات الصغيرة */
+      :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --bg-color: #ecf0f1;
+        --panel-bg: #ffffff;
+        --border-color: #bdc3c7;
+        --text-color: #34495e;
+        --hover-bg: #f2f8fc;
+      }
+      body {
+        font-family: "Cairo", sans-serif;
+        margin: 0;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        flex-grow: 1;
+        overflow: hidden;
+        width: 100%;
+      }
+      .sidebar {
+        width: 300px;
+        background-color: var(--panel-bg);
+        border-left: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
+      }
+      .sidebar-header {
+        padding: 20px;
+        font-size: 1.5em;
+        font-weight: 700;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--border-color);
+        text-align: center;
+      }
+      #file-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        overflow-y: auto;
+        flex-grow: 1;
+      }
+      #file-list li {
+        padding: 15px 20px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+        transition: all 0.2s ease;
+        font-size: 1.1em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #file-list li:hover {
+        background-color: var(--hover-bg);
+        color: var(--secondary-color);
+      }
+      #file-list li.active {
+        background-color: var(--secondary-color);
+        color: white;
+        font-weight: 700;
+      }
+      .main-content {
+        flex-grow: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .viewer-controls {
+        margin-bottom: 15px;
+        text-align: left;
+      }
+      #download-btn {
+        display: none;
+        padding: 10px 25px;
+        background-color: var(--secondary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 1.1em;
+        font-weight: 700;
+        transition: background-color 0.2s ease;
+      }
+      #download-btn:hover {
+        background-color: #2980b9;
+      }
+      #viewer {
+        flex-grow: 1;
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #viewer iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+      .loader-message {
+        font-size: 1.5em;
+        color: #999;
+        text-align: center;
+      }
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column;
         }
-        .viewer-controls h2 {
-            margin: 0;
-            font-size: 1.4em;
-            color: var(--primary-color);
+        .sidebar {
+          width: 100%;
+          height: 40%;
+          border-left: none;
+          border-bottom: 1px solid var(--border-color);
         }
-        
-        #download-btn { display: none; padding: 10px 25px; background-color: var(--secondary-color); color: white; text-decoration: none; border-radius: 5px; font-size: 1.1em; font-weight: 700; transition: background-color 0.2s ease; }
-        #download-btn:hover { background-color: #2980b9; }
-        #viewer { flex-grow: 1; background: #fff; border: 1px solid var(--border-color); border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); position: relative; display: flex; justify-content: center; align-items: center; }
-        #viewer iframe { width: 100%; height: 100%; border: none; }
-        .loader-message { font-size: 1.5em; color: #999; text-align: center; padding: 20px; }
-        @media (max-width: 768px) { .container { flex-direction: column; } .sidebar { width: 100%; height: 40%; border-left: none; border-bottom: 1px solid var(--border-color); } }
+      }
+      /* --- Footer Styles --- */
+      .footer {
+        background-color: var(--primary-color);
+        color: #ecf0f1;
+        padding: 15px 20px;
+        text-align: center;
+        font-size: 0.9em;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+      }
+      .footer .line {
+        margin-bottom: 5px;
+      }
+      .footer .line:last-child {
+        margin-bottom: 0;
+      }
+      .footer a {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .footer a:hover {
+        text-decoration: underline;
+      }
+      .footer .sep {
+        margin: 0 8px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <aside class="sidebar"><div class="sidebar-header">فهرس المستندات</div><ul id="file-list"></ul></aside>
-        <main class="main-content">
-            <div class="viewer-controls">
-                <h2>عارض مستندات الاوفيس + pdf</h2>
-                <a href="#" id="download-btn" download>📥 تحميل الملف</a>
-            </div>
-            
-            <div id="viewer"><div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div></div>
-        </main>
+      <aside class="sidebar">
+        <div class="sidebar-header">فهرس المستندات</div>
+        <ul id="file-list"></ul>
+      </aside>
+      <main class="main-content">
+        <div class="viewer-controls">
+          <a href="#" id="download-btn" download>📥 تحميل الملف</a>
+        </div>
+        <div id="viewer">
+          <div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div>
+        </div>
+      </main>
     </div>
+    <footer class="footer" dir="rtl">
+      <div class="line">
+        <span>برمجة: أ/عبدالعزيز العبدالجبار</span>
+        <span class="sep">•</span>
+        <span>باستخدام</span>
+        <a
+          href="https://gemini.google.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Gemini</a
+        >
+      </div>
+      <div class="line">جميع الحقوق محفوظة لملتقى معلمي ومعلمات الرياضيات</div>
+      <div class="line">
+        <span>للاستفسار والتواصل: </span>
+        <a href="https://t.me/ITG_KSA" target="_blank" rel="noopener noreferrer"
+          >ملتقى التعليم التفاعلي</a
+        >
+      </div>
+    </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const fileListElement = document.getElementById('file-list');
-            const viewerElement = document.getElementById('viewer');
-            const downloadBtn = document.getElementById('download-btn');
-            const defaultFile = 'تعليمات.pdf';
-            const username = window.location.hostname.split('.')[0];
-            const repo = window.location.pathname.split('/')[1];
+      document.addEventListener("DOMContentLoaded", () => {
+        const fileListElement = document.getElementById("file-list");
+        const viewerElement = document.getElementById("viewer");
+        const downloadBtn = document.getElementById("download-btn");
+        const defaultFile = "تعليمات.pdf";
 
-            async function fetchAndDisplayFiles() {
-                try {
-                    const response = await fetch('file-list.json'); 
-                    if (!response.ok) throw new Error('لم يتم العثور على ملف file-list.json');
-                    const files = await response.json();
-                    
-                    fileListElement.innerHTML = ''; 
-                    files.forEach(file => {
-                        const li = document.createElement('li');
-                        li.textContent = file.substring(0, file.lastIndexOf('.')) || file;
-                        li.dataset.filename = file;
-                        li.addEventListener('click', () => {
-                            displayFile(file);
-                            document.querySelectorAll('#file-list li').forEach(item => item.classList.remove('active'));
-                            li.classList.add('active');
-                        });
-                        fileListElement.appendChild(li);
-                    });
+        async function fetchAndDisplayFiles() {
+          try {
+            const response = await fetch("file-list.json");
+            if (!response.ok)
+              throw new Error("لم يتم العثور على ملف file-list.json");
+            const files = await response.json();
 
-                    const defaultFileElement = Array.from(fileListElement.children).find(li => li.dataset.filename === defaultFile);
-                    if (defaultFileElement) { defaultFileElement.click(); } 
-                    else if (fileListElement.children.length > 0) { fileListElement.children[0].click(); }
-                } catch (error) {
-                    viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل قائمة الملفات:<br>${error.message}</div>`;
-                }
+            fileListElement.innerHTML = "";
+            files.forEach((file) => {
+              const li = document.createElement("li");
+              li.textContent = file.substring(0, file.lastIndexOf(".")) || file;
+              li.dataset.filename = file;
+              li.addEventListener("click", () => {
+                displayFile(file);
+                document
+                  .querySelectorAll("#file-list li")
+                  .forEach((item) => item.classList.remove("active"));
+                li.classList.add("active");
+              });
+              fileListElement.appendChild(li);
+            });
+
+            const defaultFileElement = Array.from(
+              fileListElement.children
+            ).find((li) => li.dataset.filename === defaultFile);
+            if (defaultFileElement) {
+              defaultFileElement.click();
+            } else if (fileListElement.children.length > 0) {
+              fileListElement.children[0].click();
             }
+          } catch (error) {
+            viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل قائمة الملفات:<br>${error.message}</div>`;
+          }
+        }
 
-            function displayFile(filename) {
-                viewerElement.innerHTML = `<div class="loader-message">جاري تحميل المعاينة...</div>`;
-                const fileExtension = filename.split('.').pop().toLowerCase();
-                const fileUrlForDownload = `documents/${filename}`;
-                let viewerIframe;
+        function displayFile(filename) {
+          viewerElement.innerHTML = `<div class="loader-message">جاري تحميل المعاينة...</div>`;
 
-                if (fileExtension === 'pdf') {
-                    viewerIframe = `<iframe src="${fileUrlForDownload}"></iframe>`;
-                } 
-                else if (['docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls', 'dotx', 'potx', 'xltx'].includes(fileExtension)) {
-                    const rawFileUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/documents/${encodeURIComponent(filename)}`;
-                    const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(rawFileUrl)}`;
-                    viewerIframe = `<iframe src="${viewerUrl}"></iframe>`;
-                } 
-                else {
-                    viewerIframe = `<div class="loader-message">نوع الملف هذا غير مدعوم للعرض.</div>`;
-                }
-                
-                viewerElement.innerHTML = viewerIframe;
-                downloadBtn.href = fileUrlForDownload;
-                downloadBtn.style.display = 'inline-block';
-            }
+          // 1. بناء الرابط الكامل للملف. نستخدم اسم الملف كما هو بدون تشفير مبدئي.
+          // الدالة new URL() ذكية بما يكفي للتعامل مع الأحرف العربية في المسار.
+          const fileOnServerUrl = new URL(
+            `documents/${filename}`,
+            window.location.href
+          ).href;
 
-            fetchAndDisplayFiles();
-        });
+          // 2. الآن، نقوم بتشفير الرابط الكامل الناتج لنرسله كـ "پارامتر" إلى خدمة جوجل.
+          // هذا هو التصحيح الرئيسي.
+          const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
+            fileOnServerUrl
+          )}&embedded=true`;
+
+          const iframe = document.createElement("iframe");
+          iframe.src = googleViewerUrl;
+          iframe.onerror = () => {
+            viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل المعاينة.<br>تأكد من أن المستودع عام وأن الملف موجود.</div>`;
+          };
+          iframe.onload = () => {
+            viewerElement.innerHTML = "";
+            viewerElement.appendChild(iframe);
+          };
+
+          // رابط التحميل يستخدم المسار النسبي مباشرة
+          downloadBtn.href = `documents/${filename}`;
+          downloadBtn.style.display = "inline-block";
+        }
+
+        fetchAndDisplayFiles();
+      });
     </script>
-</body>
+  </body>
 </html>
