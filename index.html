@@ -1,229 +1,155 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>مستعرض المستندات</title>
+    <title>أداة إعداد قائمة المستندات</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap"
-      rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap"
+        rel="stylesheet"
     />
-
     <style>
-      /* نفس كود CSS من الإجابة السابقة بالضبط - لا تغيير هنا */
-      :root {
-        --primary-color: #2c3e50;
-        --secondary-color: #3498db;
-        --bg-color: #ecf0f1;
-        --panel-bg: #ffffff;
-        --border-color: #bdc3c7;
-        --text-color: #34495e;
-        --hover-bg: #f2f8fc;
-      }
-      body {
-        font-family: "Cairo", sans-serif;
-        margin: 0;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        display: flex;
-        height: 100vh;
-        overflow: hidden;
-      }
-      .container {
-        display: flex;
-        width: 100%;
-        height: 100%;
-      }
-      .sidebar {
-        width: 300px;
-        background-color: var(--panel-bg);
-        border-left: 1px solid var(--border-color);
-        display: flex;
-        flex-direction: column;
-        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
-      }
-      .sidebar-header {
-        padding: 20px;
-        font-size: 1.5em;
-        font-weight: 700;
-        color: var(--primary-color);
-        border-bottom: 1px solid var(--border-color);
-        text-align: center;
-      }
-      #file-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        overflow-y: auto;
-        flex-grow: 1;
-      }
-      #file-list li {
-        padding: 15px 20px;
-        cursor: pointer;
-        border-bottom: 1px solid #eee;
-        transition: all 0.2s ease;
-        font-size: 1.1em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      #file-list li:hover {
-        background-color: var(--hover-bg);
-        color: var(--secondary-color);
-      }
-      #file-list li.active {
-        background-color: var(--secondary-color);
-        color: white;
-        font-weight: 700;
-      }
-      .main-content {
-        flex-grow: 1;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      .viewer-controls {
-        margin-bottom: 15px;
-        text-align: left;
-      }
-      #download-btn {
-        display: none;
-        padding: 10px 25px;
-        background-color: var(--secondary-color);
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-        font-size: 1.1em;
-        font-weight: 700;
-        transition: background-color 0.2s ease;
-      }
-      #download-btn:hover {
-        background-color: #2980b9;
-      }
-      #viewer {
-        flex-grow: 1;
-        background: #fff;
-        border: 1px solid var(--border-color);
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      #viewer iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-      }
-      .loader-message {
-        font-size: 1.5em;
-        color: #999;
-      }
-      @media (max-width: 768px) {
-        .container {
-          flex-direction: column;
-        }
-        .sidebar {
-          width: 100%;
-          height: 40%;
-          border-left: none;
-          border-bottom: 1px solid var(--border-color);
-        }
-      }
+        body { font-family: "Cairo", sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); width: 90%; max-width: 1200px; display: grid; grid-template-columns: 1fr 2fr; grid-template-rows: auto 1fr; gap: 20px; grid-template-areas: "header header" "sidebar main"; }
+        header { grid-area: header; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        header h1 { margin: 0; color: #2c3e50; }
+        .sidebar { grid-area: sidebar; display: flex; flex-direction: column; gap: 15px; }
+        .main-content { grid-area: main; display: flex; flex-direction: column; }
+        button { background-color: #3498db; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 1.1em; font-family: "Cairo", sans-serif; transition: background-color 0.3s; }
+        button:hover { background-color: #2980b9; }
+        #export-json-btn { background-color: #2ecc71; }
+        #export-json-btn:hover { background-color: #27ae60; }
+        #file-list { list-style-type: none; padding: 0; margin: 0; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; overflow-y: auto; height: 300px; }
+        #file-list li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        #file-list li:hover { background-color: #e9e9e9; }
+        #json-output { width: 100%; height: 200px; font-family: monospace; font-size: 1em; border: 1px solid #ddd; border-radius: 5px; padding: 10px; direction: ltr; resize: vertical; }
+        #preview { flex-grow: 1; border: 1px solid #ddd; border-radius: 5px; display: flex; justify-content: center; align-items: center; background-color: #f9f9f9; min-height: 400px; }
+        #preview-iframe { width: 100%; height: 100%; border: none; }
+        .info { color: #7f8c8d; text-align: center; }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <aside class="sidebar">
-        <div class="sidebar-header">فهرس المستندات</div>
-        <ul id="file-list"></ul>
-      </aside>
-      <main class="main-content">
-        <div class="viewer-controls">
-          <a href="#" id="download-btn" download>📥 تحميل الملف</a>
-        </div>
-        <div id="viewer">
-          <div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div>
-        </div>
-      </main>
+        <header>
+            <h1>أداة إعداد ملف `file-list.json`</h1>
+            <p class="info">تعمل هذه الأداة محلياً على جهازك لمساعدتك في إنشاء قائمة الملفات.</p>
+        </header>
+
+        <aside class="sidebar">
+            <button id="select-folder-btn">① اختر مجلد المستندات</button>
+            <h4>الملفات التي تم العثور عليها:</h4>
+            <ul id="file-list"><li class="info">...في انتظار اختيار المجلد</li></ul>
+            <h4>② محتوى JSON:</h4>
+            <textarea id="json-output" readonly>سيظهر الكود هنا...</textarea>
+            
+            <button id="export-json-btn" disabled>③ تصدير ملف file-list.json</button>
+        </aside>
+
+        <main class="main-content">
+            <h4>المعاينة أو الفتح:</h4>
+            <div id="preview"><p class="info">انقر على ملف من القائمة لمعاينته (PDF) أو لفتحه في البرنامج المخصص له (Office)</p></div>
+        </main>
     </div>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
+        const selectFolderBtn = document.getElementById("select-folder-btn");
         const fileListElement = document.getElementById("file-list");
-        const viewerElement = document.getElementById("viewer");
-        const downloadBtn = document.getElementById("download-btn");
-        const defaultFile = "تعليمات.pdf";
+        const jsonOutput = document.getElementById("json-output");
+        const exportJsonBtn = document.getElementById("export-json-btn"); // تم تحديث المتغير
+        const previewElement = document.getElementById("preview");
+        let fileHandles = new Map();
 
-        async function fetchAndDisplayFiles() {
-          try {
-            // --- هذا هو السطر الوحيد الذي تغير ---
-            // استدعاء ملف JSON المحلي بدلاً من ملف PHP
-            const response = await fetch("file-list.json");
-            // ------------------------------------
-
-            if (!response.ok)
-              throw new Error("لم يتم العثور على ملف file-list.json");
-            const files = await response.json();
-
-            fileListElement.innerHTML = "";
-            files.forEach((file) => {
-              const li = document.createElement("li");
-              li.textContent = file.substring(0, file.lastIndexOf(".")) || file;
-              li.dataset.filename = file;
-              li.addEventListener("click", () => {
-                displayFile(file);
-                document
-                  .querySelectorAll("#file-list li")
-                  .forEach((item) => item.classList.remove("active"));
-                li.classList.add("active");
-              });
-              fileListElement.appendChild(li);
-            });
-
-            const defaultFileElement = Array.from(
-              fileListElement.children
-            ).find((li) => li.dataset.filename === defaultFile);
-            if (defaultFileElement) {
-              defaultFileElement.click();
-            } else if (fileListElement.children.length > 0) {
-              fileListElement.children[0].click();
+        selectFolderBtn.addEventListener("click", async () => {
+            if (!("showDirectoryPicker" in window)) {
+                alert("عذراً، متصفحك لا يدعم هذه الميزة. الرجاء استخدام Google Chrome أو Microsoft Edge.");
+                return;
             }
-          } catch (error) {
-            viewerElement.innerHTML = `<div class="loader-message">فشل في تحميل قائمة الملفات: ${error.message}</div>`;
-            console.error("Fetch error:", error);
-          }
+            try {
+                const dirHandle = await window.showDirectoryPicker();
+                const fileNames = [];
+                fileHandles.clear();
+                fileListElement.innerHTML = "";
+                for await (const entry of dirHandle.values()) {
+                    if (entry.kind === "file" && !entry.name.startsWith(".")) {
+                        fileNames.push(entry.name);
+                        fileHandles.set(entry.name, entry);
+                        const li = document.createElement("li");
+                        li.textContent = entry.name;
+                        li.addEventListener("click", () => displayLocalFile(entry.name));
+                        fileListElement.appendChild(li);
+                    }
+                }
+                fileNames.sort();
+                jsonOutput.value = JSON.stringify(fileNames, null, 2);
+                
+                // تفعيل زر التصدير بعد إنشاء القائمة
+                exportJsonBtn.disabled = false;
+
+                if (fileNames.length === 0) {
+                    fileListElement.innerHTML = '<li class="info">لم يتم العثور على ملفات.</li>';
+                    exportJsonBtn.disabled = true; // تعطيل الزر إذا لا توجد ملفات
+                }
+            } catch (err) {
+                if (err.name !== "AbortError") console.error(err);
+            }
+        });
+        
+        // --- الدالة الجديدة لتصدير الملف ---
+        function exportJsonFile() {
+            const jsonData = jsonOutput.value;
+            if (!jsonData || jsonData === 'سيظهر الكود هنا...') {
+                alert('لا يوجد محتوى لتصديره. الرجاء اختيار مجلد المستندات أولاً.');
+                return;
+            }
+
+            // إنشاء كائن Blob من النص
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            
+            // إنشاء رابط وهمي لتنزيل الملف
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'file-list.json'; // اسم الملف الذي سيتم تنزيله
+            document.body.appendChild(a);
+            a.click();
+            
+            // تنظيف الرابط بعد التنزيل
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
-        function displayFile(filename) {
-          viewerElement.innerHTML = `<div class="loader-message">جاري تحميل المعاينة...</div>`;
+        // --- ربط الدالة الجديدة بالزر ---
+        exportJsonBtn.addEventListener("click", exportJsonFile);
 
-          // هنا نستخدم مساراً نسبياً (relative path) ليعمل مباشرة على GitHub Pages
-          const fileUrl = `documents/${encodeURIComponent(filename)}`;
+        async function displayLocalFile(fileName) {
+            const fileHandle = fileHandles.get(fileName);
+            if (!fileHandle) return;
+            const file = await fileHandle.getFile();
+            const fileExtension = fileName.split(".").pop().toLowerCase();
 
-          // خدمة Google لا تزال هي الحل الأمثل للمعاينة
-          const googleViewerUrl = `https://docs.google.com/gview?url=${window.location.href.replace(
-            "index.html",
-            ""
-          )}${fileUrl}&embedded=true`;
-
-          const iframe = document.createElement("iframe");
-          iframe.src = googleViewerUrl;
-          iframe.onload = () => {
-            viewerElement.innerHTML = "";
-            viewerElement.appendChild(iframe);
-          };
-
-          downloadBtn.href = fileUrl;
-          downloadBtn.style.display = "inline-block";
+            if (fileExtension === "pdf") {
+                previewElement.innerHTML = "";
+                const objectURL = URL.createObjectURL(file);
+                const iframe = document.createElement("iframe");
+                iframe.id = "preview-iframe";
+                iframe.src = objectURL;
+                previewElement.appendChild(iframe);
+            } else if (["docx", "pptx", "xlsx", "doc", "ppt", "xls"].includes(fileExtension)) {
+                const objectURL = URL.createObjectURL(file);
+                const tempLink = document.createElement("a");
+                tempLink.href = objectURL;
+                tempLink.download = fileName;
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                URL.revokeObjectURL(objectURL);
+                previewElement.innerHTML = `<p class="info">👍<br>تم بدء تنزيل ملف '${fileName}'.<br>انقر على الملف في شريط التنزيلات لفتحه.</p>`;
+            } else {
+                previewElement.innerHTML = `<p class="info">نوع الملف (${fileExtension}) غير مدعوم للمعاينة أو الفتح المباشر.</p>`;
+            }
         }
-        fetchAndDisplayFiles();
-      });
     </script>
-  </body>
+</body>
 </html>
