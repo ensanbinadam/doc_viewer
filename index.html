@@ -30,14 +30,21 @@
         body { font-family: 'Cairo', sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); display: flex; height: 100vh; overflow: hidden; }
         .container { display: flex; width: 100%; height: 100%; }
         .sidebar { width: 300px; background-color: var(--panel-bg); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05); }
-        .sidebar-header { padding: 20px; font-size: 1.5em; font-weight: 700; color: var(--primary-color); border-bottom: 1px solid var(--border-color); text-align: center; }
-        #file-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
-        /* --- التعديل هنا: إضافة مساحة للأيقونات وتحسين المظهر --- */
-        #file-list li { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color); transition: all 0.2s ease; font-size: 1.05em; white-space: normal; word-wrap: break-word; }
-        #file-list li i { margin-left: 15px; font-size: 1.4em; width: 25px; text-align: center; }
-        #file-list li:hover { background-color: var(--hover-bg); color: var(--secondary-color); }
-        #file-list li.active { background-color: var(--secondary-color); color: white; font-weight: 700; }
-        #file-list li.active i { color: white !important; } /* للتأكد من أن لون الأيقونة يتغير */
+        .sidebar-header { padding: 15px; border-bottom: 1px solid var(--border-color); text-align: center; }
+        .sidebar-header h3 { margin: 0 0 15px 0; font-size: 1.5em; font-weight: 700; color: var(--primary-color); }
+        #file-filter { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); font-family: 'Cairo', sans-serif; font-size: 1em; }
+        .table-container { overflow-y: auto; flex-grow: 1; }
+        #file-table { width: 100%; border-collapse: collapse; }
+        #file-table thead th { background-color: #f2f2f2; padding: 12px 10px; text-align: right; font-size: 0.9em; color: var(--primary-color); position: sticky; top: 0; }
+        #file-table tbody tr { cursor: pointer; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; }
+        #file-table tbody tr:hover { background-color: var(--hover-bg); }
+        #file-table tbody tr.active { background-color: var(--secondary-color); color: white; font-weight: 700; }
+        #file-table tbody tr.active i { color: white !important; }
+        #file-table td { padding: 12px 10px; vertical-align: middle; font-size: 1em; }
+        #file-table td.col-seq { width: 30px; text-align: center; color: #888; }
+        #file-table td.col-name { white-space: normal; word-wrap: break-word; }
+        #file-table td.col-type { width: 40px; text-align: center; }
+        #file-table td.col-type i { font-size: 1.5em; }
         .main-content { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
         .viewer-controls { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .viewer-controls h2 { margin: 0; font-size: 1.4em; color: var(--primary-color); }
@@ -85,12 +92,37 @@
             text-decoration: underline;
         }
 
-        @media (max-width: 768px) { .container { flex-direction: column; } .sidebar { width: 100%; height: 40%; border-left: none; border-bottom: 1px solid var(--border-color); } }
+        @media (max-width: 768px) { .container { flex-direction: column; } .sidebar { width: 100%; height: 50%; border-left: none; border-bottom: 1px solid var(--border-color); } }
     </style>
 </head>
 <body>
     <div class="container">
-        <aside class="sidebar"><div class="sidebar-header">فهرس المستندات</div><ul id="file-list"></ul></aside>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>فهرس المستندات</h3>
+                <select id="file-filter">
+                    <option value="all">عرض الكل</option>
+                    <option value="pdf">ملفات PDF</option>
+                    <option value="doc">مستندات Word</option>
+                    <option value="xls">جداول Excel</option>
+                    <option value="ppt">عروض PowerPoint</option>
+                    <option value="img">ملفات الصور</option>
+                    <option value="txt">ملفات نصية</option>
+                </select>
+            </div>
+            <div class="table-container">
+                <table id="file-table">
+                    <thead>
+                        <tr>
+                            <th class="col-seq">#</th>
+                            <th class="col-name">اسم الملف</th>
+                            <th class="col-type">النوع</th>
+                        </tr>
+                    </thead>
+                    <tbody id="file-list"></tbody>
+                </table>
+            </div>
+        </aside>
         <main class="main-content">
             <div class="viewer-controls">
                 <h2>مستندات تعليمية-المعلم/ عبدالعزيز العبدالجبار</h2>
@@ -112,6 +144,7 @@
             const fileListElement = document.getElementById('file-list');
             const viewerElement = document.getElementById('viewer');
             const downloadBtn = document.getElementById('download-btn');
+            const filterElement = document.getElementById('file-filter');
             const defaultFile = 'تعليمات.pdf';
 
             async function fetchAndDisplayFiles() {
@@ -140,29 +173,62 @@
                         return;
                     }
 
+                    // --- التعديل هنا: بناء الجدول بدلاً من القائمة ---
                     fileListElement.innerHTML = ''; 
-                    files.forEach(file => {
-                        const li = document.createElement('li');
+                    files.forEach((file, index) => {
+                        const tr = document.createElement('tr');
+                        const fileType = getFileType(file);
+                        tr.dataset.filename = file;
+                        tr.dataset.filetype = fileType;
+
+                        // عمود الرقم التسلسلي
+                        const tdSeq = document.createElement('td');
+                        tdSeq.className = 'col-seq';
+                        tdSeq.textContent = index + 1;
+
+                        // عمود اسم الملف
+                        const tdName = document.createElement('td');
+                        tdName.className = 'col-name';
+                        tdName.textContent = file.substring(0, file.lastIndexOf('.')) || file;
+
+                        // عمود نوع الملف (الأيقونة)
+                        const tdType = document.createElement('td');
+                        tdType.className = 'col-type';
                         const icon = document.createElement('i');
-                        icon.className = getFileIconClass(file); // دالة جديدة لتحديد الأيقونة
+                        icon.className = getFileIconClass(file);
+                        tdType.appendChild(icon);
 
-                        const textNode = document.createTextNode(file.substring(0, file.lastIndexOf('.')) || file);
-                        
-                        li.appendChild(icon);
-                        li.appendChild(textNode);
+                        tr.appendChild(tdSeq);
+                        tr.appendChild(tdName);
+                        tr.appendChild(tdType);
 
-                        li.dataset.filename = file;
-                        li.addEventListener('click', () => displayFile(file, li));
-                        fileListElement.appendChild(li);
+                        tr.addEventListener('click', () => displayFile(file, tr));
+                        fileListElement.appendChild(tr);
                     });
 
                     const defaultFileElement = Array.from(fileListElement.children).find(li => li.dataset.filename === defaultFile);
                     if (defaultFileElement) { defaultFileElement.click(); } 
                     else if (fileListElement.children.length > 0) { fileListElement.children[0].click(); }
 
+                    // --- التعديل هنا: إضافة مستمع لحدث الفلتر ---
+                    filterElement.addEventListener('change', filterFiles);
+
                 } catch (error) {
                     viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل قائمة الملفات:<br>${error.message}</div>`;
                 }
+            }
+
+            // --- التعديل هنا: دالة جديدة لفلترة الملفات ---
+            function filterFiles() {
+                const selectedType = filterElement.value;
+                const rows = document.querySelectorAll('#file-list tr');
+                rows.forEach(row => {
+                    if (selectedType === 'all' || row.dataset.filetype === selectedType) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
             }
 
             // --- التعديل هنا: دالة جديدة لاختيار الأيقونة المناسبة ---
@@ -173,14 +239,25 @@
                 if (['doc', 'docx'].includes(extension)) return solid + 'fa-file-word';
                 if (['xls', 'xlsx'].includes(extension)) return solid + 'fa-file-excel';
                 if (['ppt', 'pptx'].includes(extension)) return solid + 'fa-file-powerpoint';
-                if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(extension)) return solid + 'fa-file-image';
+                if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp'].includes(extension)) return solid + 'fa-file-image';
                 if (extension === 'txt') return solid + 'fa-file-lines';
-                // أيقونة افتراضية للملفات الأخرى
-                return solid + 'fa-file-archive';
+                return solid + 'fa-file-archive'; // أيقونة افتراضية
+            }
+
+            // --- التعديل هنا: دالة جديدة لتحديد نوع الملف للفلتر ---
+            function getFileType(filename) {
+                const extension = filename.split('.').pop().toLowerCase();
+                if (extension === 'pdf') return 'pdf';
+                if (['doc', 'docx'].includes(extension)) return 'doc';
+                if (['xls', 'xlsx'].includes(extension)) return 'xls';
+                if (['ppt', 'pptx'].includes(extension)) return 'ppt';
+                if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp'].includes(extension)) return 'img';
+                if (extension === 'txt') return 'txt';
+                return 'other';
             }
 
             function displayFile(filename, activeListItem) {
-                document.querySelectorAll('#file-list li').forEach(item => item.classList.remove('active'));
+                document.querySelectorAll('#file-list tr').forEach(item => item.classList.remove('active'));
                 activeListItem.classList.add('active');
 
                 viewerElement.innerHTML = `<div class="loader-message">جاري تحميل المعاينة...</div>`;
