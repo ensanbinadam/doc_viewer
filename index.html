@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- --- التعديل هنا: إضافة مكتبة الأيقونات Font Awesome --- -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- --- التعديل هنا: ربط أيقونة الموقع (Favicon) --- -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* --- التعديل هنا: نظام ألوان جديد بلمسة تعليمية --- */
@@ -66,7 +68,9 @@
         .main-content { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
         .viewer-controls { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .viewer-controls h2 { margin: 0; font-size: 1.4em; color: var(--primary-color); }
-        #download-btn { display: none; padding: 10px 25px; background-color: var(--secondary-color); color: white; text-decoration: none; border-radius: 5px; font-size: 1.1em; font-weight: 700; transition: background-color 0.2s ease; }
+        /* --- التعديل هنا: تحسين زر التحميل والأيقونة --- */
+        #download-btn { display: none; align-items: center; justify-content: center; padding: 10px 25px; background-color: var(--secondary-color); color: white; text-decoration: none; border-radius: 5px; font-size: 1.1em; font-weight: 700; transition: background-color 0.2s ease; }
+        #download-btn i { margin-left: 10px; }
         #download-btn:hover { background-color: #2980b9; }
         /* --- التعديل هنا: تحسين إعدادات العارض --- */
         #viewer { flex-grow: 1; background: #fff; border: 1px solid var(--border-color); border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; }
@@ -146,7 +150,8 @@
         <main class="main-content">
             <div class="viewer-controls">
                 <h2>مستندات تعليمية-المعلم/ عبدالعزيز العبدالجبار</h2>
-                <a href="#" id="download-btn" download>📥 تحميل الملف</a>
+                <!-- --- التعديل هنا: تغيير أيقونة التحميل --- -->
+                <a href="#" id="download-btn" download><i class="fa-solid fa-download"></i>تحميل الملف</a>
             </div>
             <div id="viewer"><div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div></div>
             
@@ -320,7 +325,7 @@
 
                 viewerElement.innerHTML = viewerIframe;
                 downloadBtn.href = fileUrlForDownload;
-                downloadBtn.style.display = 'inline-block';
+                downloadBtn.style.display = 'inline-flex'; // استخدام inline-flex لمحاذاة الأيقونة والنص
             }
 
             fetchAndDisplayFiles();
