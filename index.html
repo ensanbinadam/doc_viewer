@@ -33,8 +33,24 @@
         /* --- التعديل هنا: تنسيق رأس الفهرس والبحث --- */
         .sidebar-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); }
         .sidebar-header h3 { text-align: center; margin: 0 0 15px 0; font-size: 1.5em; font-weight: 700; color: var(--primary-color); }
-        #file-filter { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); font-family: 'Cairo', sans-serif; font-size: 1em; }
-        #search-input { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); font-family: 'Cairo', sans-serif; font-size: 1em; margin-top: 10px; box-sizing: border-box; }
+        /* --- التعديل هنا: توحيد تصميم الفلتر والبحث --- */
+        #file-filter, #search-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            font-family: 'Cairo', sans-serif;
+            font-size: 1em;
+            box-sizing: border-box; /* لضمان تطابق الحجم */
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #search-input { margin-top: 10px; }
+        #file-filter:focus, #search-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        #search-input::placeholder { color: #aaa; }
         .table-container { overflow-y: auto; flex-grow: 1; }
         #file-table { width: 100%; border-collapse: collapse; }
         #file-table thead th { background-color: #f2f2f2; padding: 12px 10px; text-align: right; font-size: 0.9em; color: var(--primary-color); position: sticky; top: 0; }
