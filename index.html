@@ -173,6 +173,14 @@
             const searchElement = document.getElementById('search-input');
             const defaultFile = 'تعليمات.pdf';
 
+            // --- التعديل هنا: قائمة الملفات التي تريد تثبيتها في الأعلى ---
+            // أضف أسماء الملفات التي تريدها في الأعلى بنفس الترتيب المطلوب.
+            // تأكد من أن الاسم مطابق تماماً لاسم الملف في مجلد "documents".
+            const pinnedFiles = [
+                "تعليمات.pdf",
+                // "ملف مهم آخر.docx" 
+            ];
+
             async function fetchAndDisplayFiles() {
                 // استخراج اسم المستخدم والمستودع من عنوان URL الخاص بـ GitHub Pages
                 const username = window.location.hostname.split('.')[0];
@@ -192,10 +200,19 @@
                     const data = await response.json();
 
                     // تصفية النتائج لعرض الملفات فقط وتجاهل المجلدات أو الملفات غير المرغوب فيها
-                    const files = data.filter(item => item.type === 'file' && !item.name.startsWith('.')).map(item => item.name);
+                    let allFiles = data.filter(item => item.type === 'file' && !item.name.startsWith('.')).map(item => item.name);
                     
-                    // --- التعديل هنا: ترتيب الملفات أبجدياً (مع دعم اللغة العربية) ---
-                    files.sort((a, b) => a.localeCompare(b, 'ar'));
+                    // --- التعديل هنا: منطق الفرز الجديد ---
+                    // 1. فصل الملفات المثبتة عن غيرها
+                    const orderedPinned = pinnedFiles.filter(pinnedFile => allFiles.includes(pinnedFile));
+                    const unpinnedFiles = allFiles.filter(file => !pinnedFiles.includes(file));
+
+                    // 2. ترتيب الملفات غير المثبتة أبجدياً
+                    unpinnedFiles.sort((a, b) => a.localeCompare(b, 'ar'));
+
+                    // 3. دمج القائمتين (المثبتة أولاً ثم البقية)
+                    const files = [...orderedPinned, ...unpinnedFiles];
+                    // --- نهاية منطق الفرز الجديد ---
                     
                     if (files.length === 0) {
                         viewerElement.innerHTML = `<div class="loader-message">مجلد "documents" فارغ. الرجاء إضافة ملفات لعرضها.</div>`;
