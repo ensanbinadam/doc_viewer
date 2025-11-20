@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -75,46 +76,63 @@
             const viewerElement = document.getElementById('viewer');
             const downloadBtn = document.getElementById('download-btn');
             const defaultFile = 'تعليمات.pdf';
-            const username = window.location.hostname.split('.')[0];
-            const repo = window.location.pathname.split('/')[1];
 
             async function fetchAndDisplayFiles() {
+                // استخراج اسم المستخدم والمستودع من عنوان URL الخاص بـ GitHub Pages
+                const username = window.location.hostname.split('.')[0];
+                const repo = window.location.pathname.split('/')[1];
+                
+                // إذا لم يكن الموقع على GitHub Pages، اعرض رسالة خطأ
+                if (!window.location.hostname.includes('github.io')) {
+                    viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">هذا العارض مصمم للعمل على مواقع GitHub Pages فقط.</div>`;
+                    return;
+                }
+
+                const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/documents`;
+
                 try {
-                    const response = await fetch('file-list.json'); 
-                    if (!response.ok) throw new Error('لم يتم العثور على ملف file-list.json');
-                    const files = await response.json();
+                    const response = await fetch(apiUrl); 
+                    if (!response.ok) throw new Error(`فشل الاتصال بواجهة GitHub API. (HTTP ${response.status})`);
+                    const data = await response.json();
+
+                    // تصفية النتائج لعرض الملفات فقط وتجاهل المجلدات أو الملفات غير المرغوب فيها
+                    const files = data.filter(item => item.type === 'file' && !item.name.startsWith('.')).map(item => item.name);
                     
+                    if (files.length === 0) {
+                        viewerElement.innerHTML = `<div class="loader-message">مجلد "documents" فارغ. الرجاء إضافة ملفات لعرضها.</div>`;
+                        return;
+                    }
+
                     fileListElement.innerHTML = ''; 
                     files.forEach(file => {
                         const li = document.createElement('li');
                         li.textContent = file.substring(0, file.lastIndexOf('.')) || file;
                         li.dataset.filename = file;
-                        li.addEventListener('click', () => {
-                            displayFile(file);
-                            document.querySelectorAll('#file-list li').forEach(item => item.classList.remove('active'));
-                            li.classList.add('active');
-                        });
+                        li.addEventListener('click', () => displayFile(file, li));
                         fileListElement.appendChild(li);
                     });
 
                     const defaultFileElement = Array.from(fileListElement.children).find(li => li.dataset.filename === defaultFile);
                     if (defaultFileElement) { defaultFileElement.click(); } 
                     else if (fileListElement.children.length > 0) { fileListElement.children[0].click(); }
+
                 } catch (error) {
                     viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل قائمة الملفات:<br>${error.message}</div>`;
                 }
             }
 
-            function displayFile(filename) {
+            function displayFile(filename, activeListItem) {
+                document.querySelectorAll('#file-list li').forEach(item => item.classList.remove('active'));
+                activeListItem.classList.add('active');
+
                 viewerElement.innerHTML = `<div class="loader-message">جاري تحميل المعاينة...</div>`;
                 const fileExtension = filename.split('.').pop().toLowerCase();
                 const fileUrlForDownload = `documents/${filename}`;
                 let viewerIframe;
 
-                if (fileExtension === 'pdf') {
-                    viewerIframe = `<iframe src="${fileUrlForDownload}"></iframe>`;
-                } 
-                else if (['docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls', 'dotx', 'potx', 'xltx'].includes(fileExtension)) {
+                if (['pdf', 'docx', 'pptx', 'xlsx', 'doc', 'ppt', 'xls', 'dotx', 'dotm', 'potx', 'potm', 'xltx', 'xltm'].includes(fileExtension)) {
+                    const username = window.location.hostname.split('.')[0];
+                    const repo = window.location.pathname.split('/')[1];
                     const rawFileUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/documents/${encodeURIComponent(filename)}`;
                     const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(rawFileUrl)}`;
                     viewerIframe = `<iframe src="${viewerUrl}"></iframe>`;
@@ -122,7 +140,7 @@
                 else {
                     viewerIframe = `<div class="loader-message">نوع الملف هذا غير مدعوم للعرض.</div>`;
                 }
-                
+
                 viewerElement.innerHTML = viewerIframe;
                 downloadBtn.href = fileUrlForDownload;
                 downloadBtn.style.display = 'inline-block';
@@ -133,4 +151,3 @@
     </script>
 </body>
 </html>
-
