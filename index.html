@@ -30,9 +30,11 @@
         body { font-family: 'Cairo', sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); display: flex; height: 100vh; overflow: hidden; }
         .container { display: flex; width: 100%; height: 100%; }
         .sidebar { width: 350px; background-color: var(--panel-bg); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05); }
-        .sidebar-header { padding: 15px; border-bottom: 1px solid var(--border-color); text-align: center; }
-        .sidebar-header h3 { margin: 0 0 15px 0; font-size: 1.5em; font-weight: 700; color: var(--primary-color); }
+        /* --- التعديل هنا: تنسيق رأس الفهرس والبحث --- */
+        .sidebar-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); }
+        .sidebar-header h3 { text-align: center; margin: 0 0 15px 0; font-size: 1.5em; font-weight: 700; color: var(--primary-color); }
         #file-filter { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); font-family: 'Cairo', sans-serif; font-size: 1em; }
+        #search-input { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); font-family: 'Cairo', sans-serif; font-size: 1em; margin-top: 10px; box-sizing: border-box; }
         .table-container { overflow-y: auto; flex-grow: 1; }
         #file-table { width: 100%; border-collapse: collapse; }
         #file-table thead th { background-color: #f2f2f2; padding: 12px 10px; text-align: right; font-size: 0.9em; color: var(--primary-color); position: sticky; top: 0; }
@@ -216,20 +218,29 @@
                     if (defaultFileElement) { defaultFileElement.click(); } 
                     else if (fileListElement.children.length > 0) { fileListElement.children[0].click(); }
 
-                    // --- التعديل هنا: إضافة مستمع لحدث الفلتر ---
-                    filterElement.addEventListener('change', filterFiles);
+                    // --- التعديل هنا: إضافة مستمعات للأحداث للفلتر والبحث ---
+                    filterElement.addEventListener('change', searchAndFilterFiles);
+                    searchElement.addEventListener('input', searchAndFilterFiles);
 
                 } catch (error) {
                     viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل قائمة الملفات:<br>${error.message}</div>`;
                 }
             }
 
-            // --- التعديل هنا: دالة جديدة لفلترة الملفات ---
-            function filterFiles() {
+            // --- التعديل هنا: دالة موحدة للبحث والفلترة ---
+            function searchAndFilterFiles() {
                 const selectedType = filterElement.value;
+                const searchTerm = searchElement.value.toLowerCase();
                 const rows = document.querySelectorAll('#file-list tr');
+
                 rows.forEach(row => {
-                    if (selectedType === 'all' || row.dataset.filetype === selectedType) {
+                    const fileName = row.dataset.filename.toLowerCase();
+                    const fileType = row.dataset.filetype;
+
+                    const typeMatch = (selectedType === 'all' || fileType === selectedType);
+                    const searchMatch = fileName.includes(searchTerm);
+
+                    if (typeMatch && searchMatch) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
