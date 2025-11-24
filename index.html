@@ -642,8 +642,8 @@
               rawFileUrl
             )}`;
             viewerIframe = `<iframe src="${viewerUrl}"></iframe>`;
-            // إضافة زر الطباعة لملفات Office
-            showButtons(true, true, false); // تحميل، طباعة فقط
+            // ملفات Office: تحميل وطباعة فقط
+            showButtons(true, true, false); // تحميل، طباعة، بدون فتح في تبويب
           } else {
             viewerIframe = `<div class="loader-message">نوع الملف هذا غير مدعوم للعرض.</div>`;
             showButtons(true, false, false); // تحميل فقط
@@ -701,11 +701,15 @@
                   </style>
                 </head>
                 <body>
-                  <img src="${img.src}" alt="${currentFileInfo.filename}" onload="window.print(); window.close();">
+                  <img src="${img.src}" alt="${currentFileInfo.filename}">
                 </body>
                 </html>
               `);
               printWindow.document.close();
+              // انتظار تحميل الصورة ثم الطباعة
+              setTimeout(() => {
+                printWindow.print();
+              }, 500);
             }
           } else if (fileType === "txt") {
             // طباعة ملفات نصية
