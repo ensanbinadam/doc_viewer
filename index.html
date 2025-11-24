@@ -604,12 +604,8 @@
             viewerIframe = `<iframe src="${fileUrlForDownload}"></iframe>`;
             showButtons(true, true, false); // تحميل، طباعة، بدون فتح في تبويب
           } else if (["html", "htm"].includes(fileExtension)) {
-            // ملفات HTML: عرض رسالة مع خيار الفتح في تبويب جديد
-            viewerIframe = `<div class="loader-message">
-              <i class="fa-solid fa-file-code" style="font-size: 3em; color: var(--icon-color-html); margin-bottom: 15px;"></i>
-              <p>ملف HTML - ${filename}</p>
-              <p style="font-size: 0.9em; color: #666;">اضغط على زر "فتح في تبويب جديد" لعرض المحتوى</p>
-            </div>`;
+            // ملفات HTML: عرضها في iframe + زر فتح في تبويب جديد
+            viewerIframe = `<iframe src="${fileUrlForDownload}"></iframe>`;
             showButtons(true, false, true); // تحميل، بدون طباعة، فتح في تبويب
           } else if (
             ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp"].includes(
@@ -646,7 +642,8 @@
               rawFileUrl
             )}`;
             viewerIframe = `<iframe src="${viewerUrl}"></iframe>`;
-            showButtons(true, false, false); // تحميل فقط، بدون طباعة أو فتح في تبويب
+            // إضافة زر الطباعة لملفات Office
+            showButtons(true, true, true); // تحميل، طباعة، فتح في تبويب جديد
           } else {
             viewerIframe = `<div class="loader-message">نوع الملف هذا غير مدعوم للعرض.</div>`;
             showButtons(true, false, false); // تحميل فقط
@@ -716,6 +713,23 @@
             if (iframe && iframe.contentWindow) {
               iframe.contentWindow.print();
             }
+          } else if (
+            ["docx", "pptx", "xlsx", "doc", "ppt", "xls", "dotx", "dotm", "potx", "potm", "xltx", "xltm"].includes(
+              fileType
+            )
+          ) {
+            // طباعة ملفات Office: فتح الملف الأصلي في تبويب جديد
+            // المستخدم يمكنه استخدام خيار الطباعة من Office Viewer
+            const username = window.location.hostname.split(".")[0];
+            const repo = window.location.pathname.split("/")[1];
+            const rawFileUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/documents/${encodeURIComponent(
+              currentFileInfo.filename
+            )}`;
+            const viewerUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
+              rawFileUrl
+            )}`;
+            window.open(viewerUrl, "_blank");
+            alert("تم فتح الملف في تبويب جديد. يمكنك استخدام خيار الطباعة من القائمة العلوية.");
           } else {
             alert("الطباعة غير مدعومة لهذا النوع من الملفات");
           }
