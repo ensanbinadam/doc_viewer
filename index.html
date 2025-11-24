@@ -6,34 +6,33 @@
     <title>مستعرض المستندات</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- --- التعديل هنا: إضافة مكتبة الأيقونات Font Awesome --- -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-    <!-- --- التعديل هنا: ربط أيقونة الموقع (Favicon) --- -->
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link
       href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <style>
-      /* --- التعديل هنا: نظام ألوان جديد بلمسة تعليمية --- */
       :root {
-        --primary-color: #005a9c; /* أزرق أكاديمي */
-        --secondary-color: #007bff; /* أزرق تفاعلي */
-        --bg-color: #f8f9fa; /* خلفية بيضاء مائلة للرمادي */
-        --panel-bg: #ffffff; /* أبيض نقي للوحات */
-        --border-color: #dee2e6; /* لون حدود ناعم */
-        --text-color: #212529; /* لون نص داكن وواضح */
-        --hover-bg: #e9ecef; /* لون خفيف عند التأشير */
+        --primary-color: #005a9c;
+        --secondary-color: #007bff;
+        --bg-color: #f8f9fa;
+        --panel-bg: #ffffff;
+        --border-color: #dee2e6;
+        --text-color: #212529;
+        --hover-bg: #e9ecef;
         --icon-color-pdf: #e63946;
         --icon-color-doc: #2196f3;
         --icon-color-xls: #4caf50;
         --icon-color-ppt: #ff9800;
         --icon-color-img: #9c27b0;
         --icon-color-txt: #607d8b;
-        --icon-color-html: #f36f21; /* لون أيقونة HTML */
+        --icon-color-html: #f36f21;
+        /* --- تعديل: لون جديد لزر الفتح في تبويب جديد --- */
+        --btn-new-tab-color: #28a745; /* أخضر للنجاح/الانطلاق */
       }
       body {
         font-family: "Cairo", sans-serif;
@@ -57,7 +56,6 @@
         flex-direction: column;
         box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
       }
-      /* --- التعديل هنا: تنسيق رأس الفهرس والبحث --- */
       .sidebar-header {
         padding: 15px 20px;
         border-bottom: 1px solid var(--border-color);
@@ -69,7 +67,6 @@
         font-weight: 700;
         color: var(--primary-color);
       }
-      /* --- التعديل هنا: توحيد تصميم الفلتر والبحث --- */
       #file-filter,
       #search-input {
         width: 100%;
@@ -78,7 +75,7 @@
         border: 1px solid var(--border-color);
         font-family: "Cairo", sans-serif;
         font-size: 1em;
-        box-sizing: border-box; /* لضمان تطابق الحجم */
+        box-sizing: border-box;
         transition: border-color 0.2s, box-shadow 0.2s;
       }
       #search-input {
@@ -166,27 +163,46 @@
         font-size: 1.4em;
         color: var(--primary-color);
       }
-      /* --- التعديل هنا: تحسين زر التحميل والأيقونة --- */
-      #download-btn {
-        display: none;
+      
+      /* --- تعديل: مجموعة الأزرار لضمان بقائها بجوار بعض --- */
+      .buttons-group {
+        display: flex;
+        gap: 10px; /* مسافة بين الأزرار */
+      }
+
+      /* تنسيق الزر الأساسي (تحميل) */
+      .action-btn {
+        display: none; /* مخفي افتراضياً */
         align-items: center;
         justify-content: center;
-        padding: 10px 25px;
-        background-color: var(--secondary-color);
+        padding: 10px 20px;
         color: white;
         text-decoration: none;
         border-radius: 5px;
-        font-size: 1.1em;
+        font-size: 1em;
         font-weight: 700;
         transition: background-color 0.2s ease;
       }
-      #download-btn i {
-        margin-left: 10px;
+      .action-btn i {
+        margin-left: 8px;
+      }
+
+      /* زر التحميل */
+      #download-btn {
+        background-color: var(--secondary-color);
       }
       #download-btn:hover {
         background-color: #2980b9;
       }
-      /* --- التعديل هنا: تحسين إعدادات العارض --- */
+
+      /* --- تعديل: تنسيق زر الفتح في تبويب جديد --- */
+      #open-new-tab-btn {
+        background-color: var(--btn-new-tab-color);
+      }
+      #open-new-tab-btn:hover {
+        background-color: #218838;
+      }
+
       #viewer {
         flex-grow: 1;
         background: #fff;
@@ -210,41 +226,21 @@
         text-align: center;
         padding: 20px;
       }
-
-      /* --- التعديل هنا: تنسيق عرض الصور --- */
       #viewer img {
         max-width: 100%;
         max-height: 100%;
-        object-fit: contain; /* للحفاظ على أبعاد الصورة */
+        object-fit: contain;
         border-radius: 5px;
       }
-      /* --- التعديل هنا: ألوان مخصصة للأيقونات --- */
-      .fa-file-pdf {
-        color: var(--icon-color-pdf);
-      }
-      .fa-file-word {
-        color: var(--icon-color-doc);
-      }
-      .fa-file-excel {
-        color: var(--icon-color-xls);
-      }
-      .fa-file-powerpoint {
-        color: var(--icon-color-ppt);
-      }
-      .fa-file-image {
-        color: var(--icon-color-img);
-      }
-      .fa-file-lines {
-        color: var(--icon-color-txt);
-      }
-      .fa-file-code {
-        color: var(--icon-color-html);
-      } /* أيقونة HTML */
-      .fa-file-archive {
-        color: #795548;
-      } /* أيقونة افتراضية */
+      .fa-file-pdf { color: var(--icon-color-pdf); }
+      .fa-file-word { color: var(--icon-color-doc); }
+      .fa-file-excel { color: var(--icon-color-xls); }
+      .fa-file-powerpoint { color: var(--icon-color-ppt); }
+      .fa-file-image { color: var(--icon-color-img); }
+      .fa-file-lines { color: var(--icon-color-txt); }
+      .fa-file-code { color: var(--icon-color-html); }
+      .fa-file-archive { color: #795548; }
 
-      /* --- التعديل هنا: إضافة تنسيق التذييل --- */
       .footer {
         padding: 10px 0 0 0;
         text-align: center;
@@ -253,22 +249,16 @@
         border-top: 1px solid var(--border-color);
         margin-top: 15px;
       }
-      .footer p {
-        margin: 5px 0;
-      }
+      .footer p { margin: 5px 0; }
       .footer a {
         color: var(--secondary-color);
         text-decoration: none;
         font-weight: bold;
       }
-      .footer a:hover {
-        text-decoration: underline;
-      }
+      .footer a:hover { text-decoration: underline; }
 
       @media (max-width: 768px) {
-        .container {
-          flex-direction: column;
-        }
+        .container { flex-direction: column; }
         .sidebar {
           width: 100%;
           height: 50%;
@@ -293,7 +283,6 @@
             <option value="txt">ملفات نصية</option>
             <option value="html">ملفات HTML</option>
           </select>
-          <!-- --- التعديل هنا: إضافة حقل البحث --- -->
           <input type="text" id="search-input" placeholder="ابحث عن ملف..." />
         </div>
         <div class="table-container">
@@ -312,16 +301,22 @@
       <main class="main-content">
         <div class="viewer-controls">
           <h2>مستندات تعليمية-المعلم/ عبدالعزيز العبدالجبار</h2>
-          <!-- --- التعديل هنا: تغيير أيقونة التحميل --- -->
-          <a href="#" id="download-btn" download
-            ><i class="fa-solid fa-download"></i>تحميل الملف</a
-          >
+          
+          <div class="buttons-group">
+            <a href="#" id="open-new-tab-btn" class="action-btn" target="_blank">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> فتح في نافذة
+            </a>
+            
+            <a href="#" id="download-btn" class="action-btn" download>
+                <i class="fa-solid fa-download"></i> تحميل
+            </a>
+          </div>
+
         </div>
         <div id="viewer">
           <div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div>
         </div>
 
-        <!-- --- التعديل هنا: إضافة قسم التذييل --- -->
         <footer class="footer">
           <p>
             تمت برمجته باستخدام
@@ -341,24 +336,21 @@
         const fileListElement = document.getElementById("file-list");
         const viewerElement = document.getElementById("viewer");
         const downloadBtn = document.getElementById("download-btn");
+        // --- تعديل: تعريف الزر الجديد ---
+        const openNewTabBtn = document.getElementById("open-new-tab-btn");
+        
         const filterElement = document.getElementById("file-filter");
         const searchElement = document.getElementById("search-input");
         const defaultFile = "تعليمات.pdf";
 
-        // --- التعديل هنا: قائمة الملفات التي تريد تثبيتها في الأعلى ---
-        // أضف أسماء الملفات التي تريدها في الأعلى بنفس الترتيب المطلوب.
-        // تأكد من أن الاسم مطابق تماماً لاسم الملف في مجلد "documents".
         const pinnedFiles = [
           "تعليمات.pdf",
-          // "ملف مهم آخر.docx"
         ];
 
         async function fetchAndDisplayFiles() {
-          // استخراج اسم المستخدم والمستودع من عنوان URL الخاص بـ GitHub Pages
           const username = window.location.hostname.split(".")[0];
           const repo = window.location.pathname.split("/")[1];
 
-          // إذا لم يكن الموقع على GitHub Pages، اعرض رسالة خطأ
           if (!window.location.hostname.includes("github.io")) {
             viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">هذا العارض مصمم للعمل على مواقع GitHub Pages فقط.</div>`;
             return;
@@ -374,15 +366,12 @@
               );
             const data = await response.json();
 
-            // تصفية النتائج لعرض الملفات فقط وتجاهل المجلدات أو الملفات غير المرغوب فيها
             let allFiles = data
               .filter(
                 (item) => item.type === "file" && !item.name.startsWith(".")
               )
               .map((item) => item.name);
 
-            // --- التعديل هنا: منطق الفرز الجديد ---
-            // 1. فصل الملفات المثبتة عن غيرها
             const orderedPinned = pinnedFiles.filter((pinnedFile) =>
               allFiles.includes(pinnedFile)
             );
@@ -390,19 +379,14 @@
               (file) => !pinnedFiles.includes(file)
             );
 
-            // 2. ترتيب الملفات غير المثبتة أبجدياً
             unpinnedFiles.sort((a, b) => a.localeCompare(b, "ar"));
-
-            // 3. دمج القائمتين (المثبتة أولاً ثم البقية)
             const files = [...orderedPinned, ...unpinnedFiles];
-            // --- نهاية منطق الفرز الجديد ---
 
             if (files.length === 0) {
               viewerElement.innerHTML = `<div class="loader-message">مجلد "documents" فارغ. الرجاء إضافة ملفات لعرضها.</div>`;
               return;
             }
 
-            // --- التعديل هنا: بناء الجدول بدلاً من القائمة ---
             fileListElement.innerHTML = "";
             files.forEach((file, index) => {
               const tr = document.createElement("tr");
@@ -410,18 +394,15 @@
               tr.dataset.filename = file;
               tr.dataset.filetype = fileType;
 
-              // عمود الرقم التسلسلي
               const tdSeq = document.createElement("td");
               tdSeq.className = "col-seq";
               tdSeq.textContent = index + 1;
 
-              // عمود اسم الملف
               const tdName = document.createElement("td");
               tdName.className = "col-name";
               tdName.textContent =
                 file.substring(0, file.lastIndexOf(".")) || file;
 
-              // عمود نوع الملف (الأيقونة)
               const tdType = document.createElement("td");
               tdType.className = "col-type";
               const icon = document.createElement("i");
@@ -445,7 +426,6 @@
               fileListElement.children[0].click();
             }
 
-            // --- التعديل هنا: إضافة مستمعات للأحداث للفلتر والبحث ---
             filterElement.addEventListener("change", searchAndFilterFiles);
             searchElement.addEventListener("input", searchAndFilterFiles);
           } catch (error) {
@@ -453,7 +433,6 @@
           }
         }
 
-        // --- التعديل هنا: دالة موحدة للبحث والفلترة ---
         function searchAndFilterFiles() {
           const selectedType = filterElement.value;
           const searchTerm = searchElement.value.toLowerCase();
@@ -475,7 +454,6 @@
           });
         }
 
-        // --- التعديل هنا: دالة جديدة لاختيار الأيقونة المناسبة ---
         function getFileIconClass(filename) {
           const extension = filename.split(".").pop().toLowerCase();
           const solid = "fa-solid ";
@@ -495,10 +473,9 @@
           if (extension === "txt") return solid + "fa-file-lines";
           if (["html", "htm"].includes(extension))
             return solid + "fa-file-code";
-          return solid + "fa-file-archive"; // أيقونة افتراضية
+          return solid + "fa-file-archive";
         }
 
-        // --- التعديل هنا: دالة جديدة لتحديد نوع الملف للفلتر ---
         function getFileType(filename) {
           const extension = filename.split(".").pop().toLowerCase();
           if (extension === "pdf") return "pdf";
@@ -542,18 +519,8 @@
             viewerIframe = `<iframe src="${fileUrlForDownload}"></iframe>`;
           } else if (
             [
-              "docx",
-              "pptx",
-              "xlsx",
-              "doc",
-              "ppt",
-              "xls",
-              "dotx",
-              "dotm",
-              "potx",
-              "potm",
-              "xltx",
-              "xltm",
+              "docx", "pptx", "xlsx", "doc", "ppt", "xls",
+              "dotx", "dotm", "potx", "potm", "xltx", "xltm",
             ].includes(fileExtension)
           ) {
             const username = window.location.hostname.split(".")[0];
@@ -570,8 +537,18 @@
           }
 
           viewerElement.innerHTML = viewerIframe;
+          
+          // إعداد زر التحميل
           downloadBtn.href = fileUrlForDownload;
-          downloadBtn.style.display = "inline-flex"; // استخدام inline-flex لمحاذاة الأيقونة والنص
+          downloadBtn.style.display = "inline-flex";
+
+          // --- تعديل: منطق زر الفتح في تبويب جديد ---
+          if (["html", "htm"].includes(fileExtension)) {
+            openNewTabBtn.href = fileUrlForDownload;
+            openNewTabBtn.style.display = "inline-flex"; // إظهار الزر
+          } else {
+            openNewTabBtn.style.display = "none"; // إخفاء الزر
+          }
         }
 
         fetchAndDisplayFiles();
