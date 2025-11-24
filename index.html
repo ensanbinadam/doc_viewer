@@ -643,7 +643,7 @@
             )}`;
             viewerIframe = `<iframe src="${viewerUrl}"></iframe>`;
             // إضافة زر الطباعة لملفات Office
-            showButtons(true, true, true); // تحميل، طباعة، فتح في تبويب جديد
+            showButtons(true, true, false); // تحميل، طباعة فقط
           } else {
             viewerIframe = `<div class="loader-message">نوع الملف هذا غير مدعوم للعرض.</div>`;
             showButtons(true, false, false); // تحميل فقط
