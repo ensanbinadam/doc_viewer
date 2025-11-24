@@ -6,22 +6,23 @@
     <title>مستعرض المستندات</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- --- التعديل هنا: إضافة مكتبة الأيقونات Font Awesome --- -->
+    <!-- مكتبة الأيقونات Font Awesome -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-    <!-- --- التعديل هنا: ربط أيقونة الموقع (Favicon) --- -->
+    <!-- أيقونة الموقع (Favicon) -->
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link
       href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <style>
-      /* --- التعديل هنا: نظام ألوان جديد بلمسة تعليمية --- */
+      /* نظام ألوان جديد بلمسة تعليمية */
       :root {
         --primary-color: #005a9c; /* أزرق أكاديمي */
         --secondary-color: #007bff; /* أزرق تفاعلي */
+        --print-color: #28a745; /* أخضر للطباعة */
         --bg-color: #f8f9fa; /* خلفية بيضاء مائلة للرمادي */
         --panel-bg: #ffffff; /* أبيض نقي للوحات */
         --border-color: #dee2e6; /* لون حدود ناعم */
@@ -57,7 +58,7 @@
         flex-direction: column;
         box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
       }
-      /* --- التعديل هنا: تنسيق رأس الفهرس والبحث --- */
+      /* تنسيق رأس الفهرس والبحث */
       .sidebar-header {
         padding: 15px 20px;
         border-bottom: 1px solid var(--border-color);
@@ -69,7 +70,7 @@
         font-weight: 700;
         color: var(--primary-color);
       }
-      /* --- التعديل هنا: توحيد تصميم الفلتر والبحث --- */
+      /* توحيد تصميم الفلتر والبحث */
       #file-filter,
       #search-input {
         width: 100%;
@@ -78,7 +79,7 @@
         border: 1px solid var(--border-color);
         font-family: "Cairo", sans-serif;
         font-size: 1em;
-        box-sizing: border-box; /* لضمان تطابق الحجم */
+        box-sizing: border-box;
         transition: border-color 0.2s, box-shadow 0.2s;
       }
       #search-input {
@@ -160,33 +161,66 @@
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
+        gap: 10px;
       }
       .viewer-controls h2 {
         margin: 0;
         font-size: 1.4em;
         color: var(--primary-color);
       }
-      /* --- التعديل هنا: تحسين زر التحميل والأيقونة --- */
-      #download-btn {
+      /* مجموعة الأزرار */
+      .btn-group {
+        display: flex;
+        gap: 10px;
+      }
+      /* تحسين تصميم الأزرار */
+      .action-btn {
         display: none;
         align-items: center;
         justify-content: center;
-        padding: 10px 25px;
-        background-color: var(--secondary-color);
+        padding: 10px 20px;
         color: white;
         text-decoration: none;
         border-radius: 5px;
-        font-size: 1.1em;
+        font-size: 1em;
         font-weight: 700;
-        transition: background-color 0.2s ease;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
-      #download-btn i {
-        margin-left: 10px;
+      .action-btn i {
+        margin-left: 8px;
+        font-size: 1.1em;
+      }
+      /* زر التحميل */
+      #download-btn {
+        background-color: var(--secondary-color);
       }
       #download-btn:hover {
-        background-color: #2980b9;
+        background-color: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
       }
-      /* --- التعديل هنا: تحسين إعدادات العارض --- */
+      /* زر الطباعة */
+      #print-btn {
+        background-color: var(--print-color);
+      }
+      #print-btn:hover {
+        background-color: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      /* زر فتح في تبويب جديد */
+      #open-tab-btn {
+        background-color: #ff9800;
+      }
+      #open-tab-btn:hover {
+        background-color: #e68900;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      /* إعدادات العارض */
       #viewer {
         flex-grow: 1;
         background: #fff;
@@ -211,14 +245,14 @@
         padding: 20px;
       }
 
-      /* --- التعديل هنا: تنسيق عرض الصور --- */
+      /* تنسيق عرض الصور */
       #viewer img {
         max-width: 100%;
         max-height: 100%;
-        object-fit: contain; /* للحفاظ على أبعاد الصورة */
+        object-fit: contain;
         border-radius: 5px;
       }
-      /* --- التعديل هنا: ألوان مخصصة للأيقونات --- */
+      /* ألوان مخصصة للأيقونات */
       .fa-file-pdf {
         color: var(--icon-color-pdf);
       }
@@ -239,12 +273,12 @@
       }
       .fa-file-code {
         color: var(--icon-color-html);
-      } /* أيقونة HTML */
+      }
       .fa-file-archive {
         color: #795548;
-      } /* أيقونة افتراضية */
+      }
 
-      /* --- التعديل هنا: إضافة تنسيق التذييل --- */
+      /* تنسيق التذييل */
       .footer {
         padding: 10px 0 0 0;
         text-align: center;
@@ -275,6 +309,32 @@
           border-left: none;
           border-bottom: 1px solid var(--border-color);
         }
+        .viewer-controls {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .btn-group {
+          flex-direction: column;
+        }
+        .action-btn {
+          width: 100%;
+        }
+      }
+
+      /* تأثير الطباعة - إخفاء العناصر غير المطلوبة عند الطباعة */
+      @media print {
+        .sidebar,
+        .viewer-controls,
+        .footer {
+          display: none !important;
+        }
+        .main-content {
+          padding: 0;
+        }
+        #viewer {
+          border: none;
+          box-shadow: none;
+        }
       }
     </style>
   </head>
@@ -293,7 +353,7 @@
             <option value="txt">ملفات نصية</option>
             <option value="html">ملفات HTML</option>
           </select>
-          <!-- --- التعديل هنا: إضافة حقل البحث --- -->
+          <!-- حقل البحث -->
           <input type="text" id="search-input" placeholder="ابحث عن ملف..." />
         </div>
         <div class="table-container">
@@ -312,16 +372,27 @@
       <main class="main-content">
         <div class="viewer-controls">
           <h2>مستندات تعليمية-المعلم/ عبدالعزيز العبدالجبار</h2>
-          <!-- --- التعديل هنا: تغيير أيقونة التحميل --- -->
-          <a href="#" id="download-btn" download
-            ><i class="fa-solid fa-download"></i>تحميل الملف</a
-          >
+          <!-- مجموعة الأزرار -->
+          <div class="btn-group">
+            <!-- زر فتح في تبويب جديد -->
+            <button class="action-btn" id="open-tab-btn">
+              <i class="fa-solid fa-external-link-alt"></i>فتح في تبويب جديد
+            </button>
+            <!-- زر الطباعة -->
+            <button class="action-btn" id="print-btn">
+              <i class="fa-solid fa-print"></i>طباعة
+            </button>
+            <!-- زر التحميل -->
+            <a href="#" class="action-btn" id="download-btn" download>
+              <i class="fa-solid fa-download"></i>تحميل
+            </a>
+          </div>
         </div>
         <div id="viewer">
           <div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div>
         </div>
 
-        <!-- --- التعديل هنا: إضافة قسم التذييل --- -->
+        <!-- قسم التذييل -->
         <footer class="footer">
           <p>
             تمت برمجته باستخدام
@@ -341,24 +412,29 @@
         const fileListElement = document.getElementById("file-list");
         const viewerElement = document.getElementById("viewer");
         const downloadBtn = document.getElementById("download-btn");
+        const printBtn = document.getElementById("print-btn");
+        const openTabBtn = document.getElementById("open-tab-btn");
         const filterElement = document.getElementById("file-filter");
         const searchElement = document.getElementById("search-input");
         const defaultFile = "تعليمات.pdf";
 
-        // --- التعديل هنا: قائمة الملفات التي تريد تثبيتها في الأعلى ---
-        // أضف أسماء الملفات التي تريدها في الأعلى بنفس الترتيب المطلوب.
-        // تأكد من أن الاسم مطابق تماماً لاسم الملف في مجلد "documents".
+        // متغير لتخزين معلومات الملف الحالي
+        let currentFileInfo = {
+          filename: "",
+          url: "",
+          type: "",
+        };
+
+        // قائمة الملفات المثبتة في الأعلى
         const pinnedFiles = [
           "تعليمات.pdf",
-          // "ملف مهم آخر.docx"
+          // أضف ملفات أخرى هنا
         ];
 
         async function fetchAndDisplayFiles() {
-          // استخراج اسم المستخدم والمستودع من عنوان URL الخاص بـ GitHub Pages
           const username = window.location.hostname.split(".")[0];
           const repo = window.location.pathname.split("/")[1];
 
-          // إذا لم يكن الموقع على GitHub Pages، اعرض رسالة خطأ
           if (!window.location.hostname.includes("github.io")) {
             viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">هذا العارض مصمم للعمل على مواقع GitHub Pages فقط.</div>`;
             return;
@@ -374,35 +450,28 @@
               );
             const data = await response.json();
 
-            // تصفية النتائج لعرض الملفات فقط وتجاهل المجلدات أو الملفات غير المرغوب فيها
             let allFiles = data
               .filter(
                 (item) => item.type === "file" && !item.name.startsWith(".")
               )
               .map((item) => item.name);
 
-            // --- التعديل هنا: منطق الفرز الجديد ---
-            // 1. فصل الملفات المثبتة عن غيرها
+            // منطق الفرز: الملفات المثبتة أولاً ثم الترتيب الأبجدي
             const orderedPinned = pinnedFiles.filter((pinnedFile) =>
               allFiles.includes(pinnedFile)
             );
             const unpinnedFiles = allFiles.filter(
               (file) => !pinnedFiles.includes(file)
             );
-
-            // 2. ترتيب الملفات غير المثبتة أبجدياً
             unpinnedFiles.sort((a, b) => a.localeCompare(b, "ar"));
-
-            // 3. دمج القائمتين (المثبتة أولاً ثم البقية)
             const files = [...orderedPinned, ...unpinnedFiles];
-            // --- نهاية منطق الفرز الجديد ---
 
             if (files.length === 0) {
               viewerElement.innerHTML = `<div class="loader-message">مجلد "documents" فارغ. الرجاء إضافة ملفات لعرضها.</div>`;
               return;
             }
 
-            // --- التعديل هنا: بناء الجدول بدلاً من القائمة ---
+            // بناء الجدول
             fileListElement.innerHTML = "";
             files.forEach((file, index) => {
               const tr = document.createElement("tr");
@@ -410,18 +479,15 @@
               tr.dataset.filename = file;
               tr.dataset.filetype = fileType;
 
-              // عمود الرقم التسلسلي
               const tdSeq = document.createElement("td");
               tdSeq.className = "col-seq";
               tdSeq.textContent = index + 1;
 
-              // عمود اسم الملف
               const tdName = document.createElement("td");
               tdName.className = "col-name";
               tdName.textContent =
                 file.substring(0, file.lastIndexOf(".")) || file;
 
-              // عمود نوع الملف (الأيقونة)
               const tdType = document.createElement("td");
               tdType.className = "col-type";
               const icon = document.createElement("i");
@@ -445,7 +511,6 @@
               fileListElement.children[0].click();
             }
 
-            // --- التعديل هنا: إضافة مستمعات للأحداث للفلتر والبحث ---
             filterElement.addEventListener("change", searchAndFilterFiles);
             searchElement.addEventListener("input", searchAndFilterFiles);
           } catch (error) {
@@ -453,7 +518,7 @@
           }
         }
 
-        // --- التعديل هنا: دالة موحدة للبحث والفلترة ---
+        // دالة موحدة للبحث والفلترة
         function searchAndFilterFiles() {
           const selectedType = filterElement.value;
           const searchTerm = searchElement.value.toLowerCase();
@@ -475,7 +540,7 @@
           });
         }
 
-        // --- التعديل هنا: دالة جديدة لاختيار الأيقونة المناسبة ---
+        // دالة اختيار الأيقونة المناسبة
         function getFileIconClass(filename) {
           const extension = filename.split(".").pop().toLowerCase();
           const solid = "fa-solid ";
@@ -495,10 +560,10 @@
           if (extension === "txt") return solid + "fa-file-lines";
           if (["html", "htm"].includes(extension))
             return solid + "fa-file-code";
-          return solid + "fa-file-archive"; // أيقونة افتراضية
+          return solid + "fa-file-archive";
         }
 
-        // --- التعديل هنا: دالة جديدة لتحديد نوع الملف للفلتر ---
+        // دالة تحديد نوع الملف للفلتر
         function getFileType(filename) {
           const extension = filename.split(".").pop().toLowerCase();
           if (extension === "pdf") return "pdf";
@@ -527,19 +592,35 @@
           const fileUrlForDownload = `documents/${filename}`;
           let viewerIframe;
 
-          if (
-            fileExtension === "pdf" ||
-            ["html", "htm"].includes(fileExtension)
-          ) {
+          // حفظ معلومات الملف الحالي
+          currentFileInfo = {
+            filename: filename,
+            url: fileUrlForDownload,
+            type: fileExtension,
+          };
+
+          // عرض الملف حسب نوعه
+          if (fileExtension === "pdf") {
             viewerIframe = `<iframe src="${fileUrlForDownload}"></iframe>`;
+            showButtons(true, true, false); // تحميل، طباعة، بدون فتح في تبويب
+          } else if (["html", "htm"].includes(fileExtension)) {
+            // ملفات HTML: عرض رسالة مع خيار الفتح في تبويب جديد
+            viewerIframe = `<div class="loader-message">
+              <i class="fa-solid fa-file-code" style="font-size: 3em; color: var(--icon-color-html); margin-bottom: 15px;"></i>
+              <p>ملف HTML - ${filename}</p>
+              <p style="font-size: 0.9em; color: #666;">اضغط على زر "فتح في تبويب جديد" لعرض المحتوى</p>
+            </div>`;
+            showButtons(true, false, true); // تحميل، بدون طباعة، فتح في تبويب
           } else if (
             ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp"].includes(
               fileExtension
             )
           ) {
             viewerIframe = `<img src="${fileUrlForDownload}" alt="معاينة ${filename}">`;
+            showButtons(true, true, false); // تحميل، طباعة، بدون فتح في تبويب
           } else if (fileExtension === "txt") {
             viewerIframe = `<iframe src="${fileUrlForDownload}"></iframe>`;
+            showButtons(true, true, false); // تحميل، طباعة، بدون فتح في تبويب
           } else if (
             [
               "docx",
@@ -565,14 +646,85 @@
               rawFileUrl
             )}`;
             viewerIframe = `<iframe src="${viewerUrl}"></iframe>`;
+            showButtons(true, false, false); // تحميل فقط، بدون طباعة أو فتح في تبويب
           } else {
             viewerIframe = `<div class="loader-message">نوع الملف هذا غير مدعوم للعرض.</div>`;
+            showButtons(true, false, false); // تحميل فقط
           }
 
           viewerElement.innerHTML = viewerIframe;
           downloadBtn.href = fileUrlForDownload;
-          downloadBtn.style.display = "inline-flex"; // استخدام inline-flex لمحاذاة الأيقونة والنص
         }
+
+        // دالة لإظهار/إخفاء الأزرار حسب نوع الملف
+        function showButtons(download, print, openTab) {
+          downloadBtn.style.display = download ? "inline-flex" : "none";
+          printBtn.style.display = print ? "inline-flex" : "none";
+          openTabBtn.style.display = openTab ? "inline-flex" : "none";
+        }
+
+        // وظيفة زر الطباعة
+        printBtn.addEventListener("click", () => {
+          const fileType = currentFileInfo.type;
+
+          if (fileType === "pdf") {
+            // طباعة PDF: فتح في نافذة جديدة واستدعاء الطباعة
+            const printWindow = window.open(currentFileInfo.url, "_blank");
+            if (printWindow) {
+              printWindow.onload = function () {
+                printWindow.print();
+              };
+            }
+          } else if (
+            ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp"].includes(
+              fileType
+            )
+          ) {
+            // طباعة الصور: استخدام window.print
+            const img = viewerElement.querySelector("img");
+            if (img) {
+              const printWindow = window.open("", "_blank");
+              printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <title>طباعة ${currentFileInfo.filename}</title>
+                  <style>
+                    body {
+                      margin: 0;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      min-height: 100vh;
+                    }
+                    img {
+                      max-width: 100%;
+                      height: auto;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <img src="${img.src}" alt="${currentFileInfo.filename}" onload="window.print(); window.close();">
+                </body>
+                </html>
+              `);
+              printWindow.document.close();
+            }
+          } else if (fileType === "txt") {
+            // طباعة ملفات نصية
+            const iframe = viewerElement.querySelector("iframe");
+            if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.print();
+            }
+          } else {
+            alert("الطباعة غير مدعومة لهذا النوع من الملفات");
+          }
+        });
+
+        // وظيفة زر فتح في تبويب جديد
+        openTabBtn.addEventListener("click", () => {
+          window.open(currentFileInfo.url, "_blank");
+        });
 
         fetchAndDisplayFiles();
       });
