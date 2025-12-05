@@ -163,7 +163,7 @@
         font-size: 1.4em;
         color: var(--primary-color);
       }
-      
+
       /* --- تعديل: مجموعة الأزرار لضمان بقائها بجوار بعض --- */
       .buttons-group {
         display: flex;
@@ -232,14 +232,30 @@
         object-fit: contain;
         border-radius: 5px;
       }
-      .fa-file-pdf { color: var(--icon-color-pdf); }
-      .fa-file-word { color: var(--icon-color-doc); }
-      .fa-file-excel { color: var(--icon-color-xls); }
-      .fa-file-powerpoint { color: var(--icon-color-ppt); }
-      .fa-file-image { color: var(--icon-color-img); }
-      .fa-file-lines { color: var(--icon-color-txt); }
-      .fa-file-code { color: var(--icon-color-html); }
-      .fa-file-archive { color: #795548; }
+      .fa-file-pdf {
+        color: var(--icon-color-pdf);
+      }
+      .fa-file-word {
+        color: var(--icon-color-doc);
+      }
+      .fa-file-excel {
+        color: var(--icon-color-xls);
+      }
+      .fa-file-powerpoint {
+        color: var(--icon-color-ppt);
+      }
+      .fa-file-image {
+        color: var(--icon-color-img);
+      }
+      .fa-file-lines {
+        color: var(--icon-color-txt);
+      }
+      .fa-file-code {
+        color: var(--icon-color-html);
+      }
+      .fa-file-archive {
+        color: #795548;
+      }
 
       .footer {
         padding: 10px 0 0 0;
@@ -249,16 +265,22 @@
         border-top: 1px solid var(--border-color);
         margin-top: 15px;
       }
-      .footer p { margin: 5px 0; }
+      .footer p {
+        margin: 5px 0;
+      }
       .footer a {
         color: var(--secondary-color);
         text-decoration: none;
         font-weight: bold;
       }
-      .footer a:hover { text-decoration: underline; }
+      .footer a:hover {
+        text-decoration: underline;
+      }
 
       @media (max-width: 768px) {
-        .container { flex-direction: column; }
+        .container {
+          flex-direction: column;
+        }
         .sidebar {
           width: 100%;
           height: 50%;
@@ -301,17 +323,22 @@
       <main class="main-content">
         <div class="viewer-controls">
           <h2>مستندات تعليمية-المعلم/ عبدالعزيز العبدالجبار</h2>
-          
+
           <div class="buttons-group">
-            <a href="#" id="open-new-tab-btn" class="action-btn" target="_blank">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> فتح في نافذة
+            <a
+              href="#"
+              id="open-new-tab-btn"
+              class="action-btn"
+              target="_blank"
+            >
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> فتح في
+              نافذة
             </a>
-            
+
             <a href="#" id="download-btn" class="action-btn" download>
-                <i class="fa-solid fa-download"></i> تحميل
+              <i class="fa-solid fa-download"></i> تحميل
             </a>
           </div>
-
         </div>
         <div id="viewer">
           <div class="loader-message">الرجاء اختيار ملف من الفهرس لعرضه</div>
@@ -338,14 +365,12 @@
         const downloadBtn = document.getElementById("download-btn");
         // --- تعديل: تعريف الزر الجديد ---
         const openNewTabBtn = document.getElementById("open-new-tab-btn");
-        
+
         const filterElement = document.getElementById("file-filter");
         const searchElement = document.getElementById("search-input");
-        const defaultFile = "edu.png";
+        const defaultFile = "moltaga.png";
 
-        const pinnedFiles = [
-          "",
-        ];
+        const pinnedFiles = [""];
 
         async function fetchAndDisplayFiles() {
           const username = window.location.hostname.split(".")[0];
@@ -519,8 +544,18 @@
             viewerIframe = `<iframe src="${fileUrlForDownload}"></iframe>`;
           } else if (
             [
-              "docx", "pptx", "xlsx", "doc", "ppt", "xls",
-              "dotx", "dotm", "potx", "potm", "xltx", "xltm",
+              "docx",
+              "pptx",
+              "xlsx",
+              "doc",
+              "ppt",
+              "xls",
+              "dotx",
+              "dotm",
+              "potx",
+              "potm",
+              "xltx",
+              "xltm",
             ].includes(fileExtension)
           ) {
             const username = window.location.hostname.split(".")[0];
@@ -537,7 +572,7 @@
           }
 
           viewerElement.innerHTML = viewerIframe;
-          
+
           // إعداد زر التحميل
           downloadBtn.href = fileUrlForDownload;
           downloadBtn.style.display = "inline-flex";
