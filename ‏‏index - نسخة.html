@@ -317,8 +317,7 @@
         white-space: nowrap;
       }
 
-      #download-btn,
-      #open-tab-btn {
+      #download-btn {
         display: none;
         align-items: center;
         justify-content: center;
@@ -333,22 +332,14 @@
           box-shadow 0.3s ease;
         box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
       }
-      #download-btn i,
-      #open-tab-btn i {
+      #download-btn i {
         margin-left: 10px;
         font-size: 1.1em;
       }
-      #download-btn:hover,
-      #open-tab-btn:hover {
+      #download-btn:hover {
         background-color: var(--secondary-color);
         box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
         transform: translateY(-1px);
-      }
-
-      .action-buttons {
-        display: flex;
-        gap: 10px;
-        align-items: center;
       }
 
       #viewer {
@@ -579,14 +570,9 @@
             <h2>مستعرض مستندات وملفات منوعة</h2>
             <span class="programmer-credit">github</span>
           </div>
-          <div class="action-buttons">
-            <a href="#" id="open-tab-btn" target="_blank">
-              فتح في تبويب جديد <i class="fa-solid fa-external-link-alt"></i>
-            </a>
-            <a href="#" id="download-btn" download>
-              تحميل الملف<i class="fa-solid fa-download"></i>
-            </a>
-          </div>
+          <a href="#" id="download-btn" download
+            >تحميل الملف<i class="fa-solid fa-download"></i
+          ></a>
         </div>
         <div id="viewer">
           <div class="loader-message">
@@ -633,7 +619,6 @@
         const fileListElement = document.getElementById("file-list");
         const viewerElement = document.getElementById("viewer");
         const downloadBtn = document.getElementById("download-btn");
-        const openTabBtn = document.getElementById("open-tab-btn");
         const filterElement = document.getElementById("file-filter");
         const searchElement = document.getElementById("search-input");
         const darkModeToggle = document.getElementById("dark-mode-toggle");
@@ -1192,13 +1177,6 @@
           viewerElement.innerHTML = viewerIframe;
           downloadBtn.href = fileUrlForDownload;
           downloadBtn.style.display = "inline-flex";
-
-          if (["html", "htm"].includes(fileExtension)) {
-            openTabBtn.href = fileUrlForDownload;
-            openTabBtn.style.display = "inline-flex";
-          } else {
-            openTabBtn.style.display = "none";
-          }
         }
 
         // --- 2. تنفيذ الوضع الليلي والتحميل ---
