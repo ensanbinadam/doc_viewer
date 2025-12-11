@@ -568,7 +568,7 @@
         <div class="viewer-controls">
           <div class="header-info">
             <h2>مستعرض مستندات وملفات منوعة</h2>
-            <span class="programmer-credit">"github"</span>
+            <span class="programmer-credit">برمجة :NMO </span>
           </div>
           <a href="#" id="download-btn" download
             >تحميل الملف<i class="fa-solid fa-download"></i
@@ -623,13 +623,18 @@
         const searchElement = document.getElementById("search-input");
         const darkModeToggle = document.getElementById("dark-mode-toggle");
         // --- 1. الإعدادات (Configuration) ---
+        // --- 1. الإعدادات (Configuration) ---
         const CONFIG = {
           defaultFile: "تعليمات.pdf",
-          pinnedFiles: [
-            "تعليمات.pdf",
-            // "ملف مهم آخر.docx"
-          ],
-          classFolders: [
+          // معلومات المستودع (مطلوبة لجلب الملفات تلقائياً من GitHub)
+          repoInfo: {
+            username: "ensanbinadam",
+            repo: "doc_viewer",
+            branch: "main",
+          },
+          pinnedFiles: ["تعليمات.pdf"],
+          // ترتيب المجلدات كما تفضل
+          folderOrder: [
             "أول ابتدائي",
             "ثاني ابتدائي",
             "ثالث ابتدائي",
@@ -637,10 +642,6 @@
             "خامس ابتدائي",
             "سادس ابتدائي",
           ],
-          repoInfo: {
-            username: window.location.hostname.split(".")[0],
-            repo: window.location.pathname.split("/")[1],
-          },
         };
 
         // --- 1. وظيفة الوضع الليلي ---
@@ -727,59 +728,74 @@
 
         // -----------------------------
 
-        // وظيفة جلب الملفات من مجلد محدد
-        async function fetchClassFiles(folderPath) {
-          const { username, repo } = CONFIG.repoInfo;
-          const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/documents/${encodeURIComponent(
-            folderPath
-          )}`;
-
-          try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-              if (response.status === 404) return [];
-              throw new Error(
-                `فشل الاتصال بواجهة GitHub API لمسار ${folderPath}. (HTTP ${response.status})`
-              );
-            }
-            const data = await response.json();
-            return data
-              .filter(
-                (item) => item.type === "file" && !item.name.startsWith(".")
-              )
-              .map((item) => ({
-                name: item.name,
-                path: folderPath ? `${folderPath}/${item.name}` : item.name, // المسار الكامل للملف
-                folder: folderPath || "ملفات عامة",
-              }));
-          } catch (error) {
-            console.error(`Error fetching files for ${folderPath}:`, error);
-            return [];
-          }
-        }
+        // المتغير لتخزين كافة بيانات الملفات بعد جلبها
+        let allFilesCache = [];
 
         async function fetchAndDisplayFiles() {
-          if (!window.location.hostname.includes("github.io")) {
-            viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">هذا العارض مصمم للعمل على مواقع GitHub Pages فقط.</div>`;
+          // تفريغ المحتوى وعرض رسالة تحميل
+          // viewerElement.innerHTML = `<div class="loader-message">جاري تحميل فهرس الملفات...</div>`;
+
+          const { username, repo, branch } = CONFIG.repoInfo;
+
+          // التحقق من إعدادات المستودع
+          if (!username || !repo || username === "YOUR_USERNAME_HERE") {
+            viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">
+                    الرجاء ضبط إعدادات اسم المستخدم والمستودع في الكود (CONFIG.repoInfo).
+                 </div>`;
             return;
           }
 
           try {
-            // تحسين الأداء: جلب جميع المجلدات بالتوازي باستخدام Promise.all
-            const folderPromises = CONFIG.classFolders.map((folder) =>
-              fetchClassFiles(folder)
-            );
-            const foldersData = await Promise.all(folderPromises);
+            // جلب قائمة الملفات باستخدام GitHub API (Tree API للحصول على كل الملفات بتكرار)
+            const apiUrl = `https://api.github.com/repos/${username}/${repo}/git/trees/${branch}?recursive=1`;
 
-            let allFilesData = foldersData.flat();
+            const response = await fetch(apiUrl);
 
-            // جلب الملفات العامة
-            const generalFiles = await fetchClassFiles("");
-            const generalFilesData = generalFiles.filter(
-              (file) => !CONFIG.classFolders.includes(file.name)
-            );
+            if (!response.ok) {
+              if (response.status === 403) {
+                throw new Error(
+                  "تجاوزت حد الطلبات المسموح به من GitHub API. (Rate Limit Exceeded)"
+                );
+              }
+              if (response.status === 404) {
+                throw new Error(
+                  `لم يتم العثور على المستودع أو الفرع المحدد. (${username}/${repo})`
+                );
+              }
+              throw new Error(
+                `فشل الاتصال بـ GitHub API. (${response.status})`
+              );
+            }
 
-            allFilesData.push(...generalFilesData);
+            const data = await response.json();
+
+            if (!data.tree) {
+              throw new Error("بنية البيانات المستلمة من GitHub غير صحيحة.");
+            }
+
+            // تصفية ومعالجة الملفات (فقط الملفات داخل مجلد documents)
+            const allFilesData = data.tree
+              .filter(
+                (item) =>
+                  item.path.startsWith("documents/") && item.type === "blob"
+              )
+              .map((item) => {
+                // حذف بادئة documents/ من المسار
+                const relativePath = item.path.substring("documents/".length);
+                const pathParts = relativePath.split("/");
+                const fileName = pathParts.pop();
+                const folderName =
+                  pathParts.length > 0 ? pathParts[0] : "ملفات عامة"; // المجلد المباشر
+
+                return {
+                  name: fileName,
+                  path: relativePath,
+                  folder: folderName,
+                  size: item.size,
+                };
+              });
+
+            allFilesCache = allFilesData;
 
             // ترتيب وعرض الملفات
 
@@ -797,6 +813,13 @@
             unpinnedFilesData.sort((a, b) => {
               // ترتيب حسب المجلد (الصف)، ثم حسب الاسم
               if (a.folder !== b.folder) {
+                const indexA = CONFIG.folderOrder.indexOf(a.folder);
+                const indexB = CONFIG.folderOrder.indexOf(b.folder);
+
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+
                 return a.folder.localeCompare(b.folder, "ar");
               }
               return a.name.localeCompare(b.name, "ar");
@@ -805,13 +828,13 @@
             const filesData = [...orderedPinned, ...unpinnedFilesData];
 
             if (filesData.length === 0) {
-              viewerElement.innerHTML = `<div class="loader-message">مجلدات المستندات فارغة. الرجاء إضافة ملفات لعرضها.</div>`;
+              viewerElement.innerHTML = `<div class="loader-message">لم يتم العثور على ملفات في مجلد documents.</div>`;
               return;
             }
 
             // تجميع الملفات حسب المجلد
             const filesByFolder = filesData.reduce((acc, fileData) => {
-              const folder = fileData.folder;
+              const folder = fileData.folder || "ملفات عامة";
               if (!acc[folder]) {
                 acc[folder] = [];
               }
@@ -823,7 +846,19 @@
             let seq = 1;
             let isFirstFolder = true;
 
-            for (const folderName in filesByFolder) {
+            // ترتيب المجلدات للعرض
+            const sortedFolderNames = Object.keys(filesByFolder).sort(
+              (a, b) => {
+                const indexA = CONFIG.folderOrder.indexOf(a);
+                const indexB = CONFIG.folderOrder.indexOf(b);
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+                return a.localeCompare(b, "ar");
+              }
+            );
+
+            for (const folderName of sortedFolderNames) {
               const folderFiles = filesByFolder[folderName];
 
               // 1. إنشاء زر المجلد (Folder Header/Accordion Button)
@@ -832,9 +867,8 @@
               folderHeaderTr.dataset.folderName = folderName;
               folderHeaderTr.dataset.isExpanded = isFirstFolder
                 ? "true"
-                : "false"; // افتح الأول
+                : "false";
 
-              // تحسينات إمكانية الوصول (Accessibility)
               folderHeaderTr.setAttribute("role", "button");
               folderHeaderTr.setAttribute("tabindex", "0");
               folderHeaderTr.setAttribute(
@@ -843,20 +877,18 @@
               );
 
               folderHeaderTr.innerHTML = `
-                    <td colspan="3" class="folder-header-content">
-                        <div class="folder-title">
-                            <i class="fa-solid fa-chevron-left arrow-icon"></i>
-                            <i class="fa-solid fa-folder-open folder-icon"></i>
-                            <span>${folderName}</span>
-                            <span class="file-count">(${folderFiles.length})</span>
-                        </div>
-                    </td>
-                `;
+                        <td colspan="3" class="folder-header-content">
+                            <div class="folder-title">
+                                <i class="fa-solid fa-chevron-left arrow-icon"></i>
+                                <i class="fa-solid fa-folder-open folder-icon"></i>
+                                <span>${folderName}</span>
+                                <span class="file-count">(${folderFiles.length})</span>
+                            </div>
+                        </td>
+                    `;
               fileListElement.appendChild(folderHeaderTr);
 
-              // إضافة معالج لفتح/غلق المجلد
               folderHeaderTr.addEventListener("click", toggleFolderVisibility);
-              // دعم لوحة المفاتيح (Enter/Space)
               folderHeaderTr.addEventListener("keydown", (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -875,7 +907,6 @@
                 tr.dataset.folder = folderName;
                 tr.dataset.isHiddenBySearch = "false";
 
-                // إخفاء الملفات إذا لم يكن المجلد مفتوحاً
                 if (!isFirstFolder) {
                   tr.style.display = "none";
                 }
@@ -886,6 +917,7 @@
 
                 const tdName = document.createElement("td");
                 tdName.className = "col-name";
+                // اسم الملف بدون الامتداد للعرض
                 tdName.textContent =
                   fileData.name.substring(0, fileData.name.lastIndexOf(".")) ||
                   fileData.name;
@@ -900,7 +932,6 @@
                 tr.appendChild(tdName);
                 tr.appendChild(tdType);
 
-                // تمرير اسم الملف والمسار الكامل
                 tr.addEventListener("click", () =>
                   displayFile(fileData.name, fileData.path, tr)
                 );
@@ -910,14 +941,12 @@
               isFirstFolder = false;
             }
 
-            // الضغط على الملف الافتراضي
             const defaultFileElement = Array.from(
               fileListElement.children
             ).find((li) => li.dataset.filename === CONFIG.defaultFile);
             if (defaultFileElement) {
               defaultFileElement.click();
             } else {
-              // الضغط على أول ملف قابل للعرض
               const firstFileRow = fileListElement.querySelector(
                 "tr:not(.folder-header)"
               );
@@ -932,6 +961,7 @@
             searchElement.addEventListener("input", searchAndFilterFiles);
           } catch (error) {
             viewerElement.innerHTML = `<div class="loader-message" style="color: #e74c3c;">فشل تحميل قائمة الملفات:<br>${error.message}</div>`;
+            console.error(error);
           }
         }
 
