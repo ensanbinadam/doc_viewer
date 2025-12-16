@@ -1,0 +1,57 @@
+name: Generate documents index.json
+
+on:
+  push:
+    paths:
+      - "documents/**"
+      - ".github/workflows/generate-index.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate index.json
+        run: |
+          python3 - << 'PY'
+          import os, json
+
+          root = "documents"
+          out = os.path.join(root, "index.json")
+          files = []
+
+          for dirpath, dirnames, filenames in os.walk(root):
+            # تجاهل مجلدات مخفية إن وجدت
+            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+            for fn in filenames:
+              if fn.startswith("."): 
+                continue
+              if fn.lower() == "index.json":
+                continue
+              rel = os.path.relpath(os.path.join(dirpath, fn), root).replace("\\", "/")
+              folder = rel.split("/")[0] if "/" in rel else "ملفات عامة"
+              files.append({"name": fn, "path": rel, "folder": folder})
+
+          # ترتيب بسيط
+          files.sort(key=lambda x: (x["folder"], x["name"]))
+
+          os.makedirs(root, exist_ok=True)
+          with open(out, "w", encoding="utf-8") as f:
+            json.dump(files, f, ensure_ascii=False, indent=2)
+
+          print(f"Wrote {out} with {len(files)} files")
+          PY
+
+      - name: Commit & push index.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add documents/index.json
+          git commit -m "Update documents/index.json" || exit 0
+          git push
