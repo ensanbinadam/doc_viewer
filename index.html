@@ -260,15 +260,6 @@
       #file-table tr.folder-header[data-is-expanded="true"] .arrow-icon {
         transform: rotate(-90deg);
       }
-
-      .main-content {
-        flex-grow: 1;
-        padding: 30px;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-      }
-
       .viewer-controls {
         margin-bottom: 20px;
         display: flex;
@@ -380,21 +371,20 @@
       }
 
       /* JSON Viewer */
-      .json-viewer {
-        width: 100%;
-        height: 100%;
-        padding: 18px;
-        box-sizing: border-box;
-        overflow: auto;           /* سكرول أفقي/عمودي */
-        white-space: pre;         /* لا تكسير للسطر => سكرول أفقي */
-        direction: ltr;
-        text-align: left;
-        margin: 0;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          "Liberation Mono", "Courier New", monospace;
-        font-size: 0.95em;
-        line-height: 1.55;
-      }
+      .json-viewer{
+  width:100%;
+  height:100%;
+  padding:18px;
+  box-sizing:border-box;
+  overflow-x:auto;
+  overflow-y:auto;
+  white-space:pre;
+  direction:ltr;
+  text-align:left;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+  font-size:0.95em;
+  line-height:1.55;
+}
 
       @media (max-width: 768px) {
         .container {
@@ -409,11 +399,8 @@
           border-left: none;
           border-bottom: 1px solid var(--border-color);
         }
-        .main-content {
-          padding: 20px;
-          min-height: auto;
-        }
-      }
+        .main-content { min-height: 0; }
+#viewer { overflow: auto; min-height: 0; align-items: stretch; justify-content: stretch; }
     </style>
   </head>
 
