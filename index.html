@@ -3,9 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>مستعرض ملفات  الملتقى</title>
-    
-    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <title>مستعرض مستندات وملفات منوعة</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -62,7 +61,7 @@
       }
 
       .sidebar {
-        width: 400px;
+        width: 380px;
         min-width: 320px;
         background-color: var(--panel-bg);
         border-left: 1px solid var(--border-color);
@@ -89,8 +88,8 @@
 
       .sidebar-header h3 {
         margin: 0;
-        font-size: 1em;
-        font-weight: 400;
+        font-size: 1.6em;
+        font-weight: 700;
       }
 
       #dark-mode-toggle {
@@ -397,18 +396,6 @@
           min-height: auto;
         }
       }
-
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-      }
     </style>
   </head>
 
@@ -417,10 +404,9 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="top-row">
-            <h3>📂 الفهرس </h3>
-            <button id="dark-mode-toggle" title="تبديل الوضع الداكن / الفاتح" aria-label="تبديل الوضع الداكن">
-              <i class="fa-solid fa-moon" aria-hidden="true"></i>
-              <span class="sr-only">الوضع الداكن</span>
+            <h3>📂 فهرس الملفات</h3>
+            <button id="dark-mode-toggle" title="الوضع الداكن / الفاتح">
+              <i class="fa-solid fa-moon"></i>
             </button>
           </div>
 
@@ -458,7 +444,7 @@
       <main class="main-content">
         <div class="viewer-controls">
           <div class="header-info">
-            <h2>مستعرض ملفات الملتقى</h2>
+            <h2>مستعرض مستندات وملفات منوعة</h2>
             <span class="programmer-credit">github</span>
           </div>
 
@@ -500,8 +486,8 @@
         const INDEX_URL = "documents/index.json";
         const BRANCH = "main";
 
-        const defaultFile = "";
-        const pinnedFiles = [""];
+        const defaultFile = "تعليمات.pdf";
+        const pinnedFiles = ["تعليمات.pdf"];
         const PINNED_FOLDER = "📌 ملفات مثبتة";
         const GENERAL_FOLDER = "ملفات عامة";
 
@@ -514,9 +500,8 @@
 
           document.body.classList.toggle("dark-mode", isDark);
           darkModeToggle.innerHTML = isDark
-            ? '<i class="fa-solid fa-sun" aria-hidden="true"></i><span class="sr-only">الوضع الفاتح</span>'
-            : '<i class="fa-solid fa-moon" aria-hidden="true"></i><span class="sr-only">الوضع الداكن</span>';
-          darkModeToggle.setAttribute("aria-label", isDark ? "تعطيل الوضع الداكن" : "تفعيل الوضع الداكن");
+            ? '<i class="fa-solid fa-sun"></i>'
+            : '<i class="fa-solid fa-moon"></i>';
         }
 
         darkModeToggle.addEventListener("click", () => {
@@ -524,9 +509,8 @@
           document.body.classList.toggle("dark-mode", isDark);
           localStorage.setItem("dark-mode", String(isDark));
           darkModeToggle.innerHTML = isDark
-            ? '<i class="fa-solid fa-sun" aria-hidden="true"></i><span class="sr-only">الوضع الفاتح</span>'
-            : '<i class="fa-solid fa-moon" aria-hidden="true"></i><span class="sr-only">الوضع الداكن</span>';
-          darkModeToggle.setAttribute("aria-label", isDark ? "تعطيل الوضع الداكن" : "تفعيل الوضع الداكن");
+            ? '<i class="fa-solid fa-sun"></i>'
+            : '<i class="fa-solid fa-moon"></i>';
         });
 
         function toUrlPath(filepath) {
@@ -555,26 +539,6 @@
           if (["html", "htm"].includes(ext)) return "html";
           if (ext === "json") return "json";
           return "other";
-        }
-
-        function getAccessibleFileTypeName(filename) {
-          const types = {
-            pdf: "ملف PDF",
-            doc: "مستند Word",
-            docx: "مستند Word",
-            xls: "جدول Excel",
-            xlsx: "جدول Excel",
-            ppt: "عرض PowerPoint",
-            pptx: "عرض PowerPoint",
-            img: "صورة",
-            video: "فيديو",
-            audio: "ملف صوتي",
-            txt: "ملف نصي",
-            html: "صفحة ويب",
-            json: "ملف JSON"
-          };
-          const type = getFileType(filename);
-          return types[type] || "ملف";
         }
 
         function getFileIconClass(filename) {
@@ -607,7 +571,6 @@
             .forEach((h) => {
               if (h !== headerRow) {
                 h.dataset.isExpanded = "false";
-                h.setAttribute("aria-expanded", "false");
                 const other = h.dataset.folderName;
                 document
                   .querySelectorAll(`#file-list tr[data-folder="${other}"]`)
@@ -615,14 +578,13 @@
               }
             });
 
-          headerRow.dataset.isExpanded = String(!isExpanded);
-          headerRow.setAttribute("aria-expanded", !isExpanded);
-
           if (isExpanded) {
+            headerRow.dataset.isExpanded = "false";
             document
               .querySelectorAll(`#file-list tr[data-folder="${folderName}"]`)
               .forEach((r) => (r.style.display = "none"));
           } else {
+            headerRow.dataset.isExpanded = "true";
             document
               .querySelectorAll(`#file-list tr[data-folder="${folderName}"]`)
               .forEach((r) => {
@@ -698,35 +660,18 @@
             header.dataset.folderName = folderName;
             header.dataset.isExpanded = isFirstFolder ? "true" : "false";
 
-            // إضافات Accessibility
-            header.setAttribute("role", "button");                  // يُعامل كزر
-            header.setAttribute("aria-expanded", isFirstFolder ? "true" : "false");
-            header.setAttribute("aria-controls", `folder-content-${folderName.replace(/\s+/g, '-')}`);
-            header.setAttribute("tabindex", "0");                   // قابل للتركيز بالكيبورد
-
             header.innerHTML = `
               <td colspan="3" class="folder-header-content">
                 <div class="folder-title">
-                  <i class="fa-solid fa-chevron-left arrow-icon" aria-hidden="true"></i>
-                  <i class="fa-solid fa-folder-open folder-icon" aria-hidden="true"></i>
+                  <i class="fa-solid fa-chevron-left arrow-icon"></i>
+                  <i class="fa-solid fa-folder-open folder-icon"></i>
                   <span>${folderName}</span>
-                  <span class="file-count" aria-hidden="true">(${folderFiles.length})</span>
-                  <span class="sr-only"> — اضغط للطي أو الفتح</span>
+                  <span class="file-count">(${folderFiles.length})</span>
                 </div>
               </td>
             `;
-
-            // دعم الكيبورد (Enter أو Space)
-            header.addEventListener("keydown", (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                toggleFolderVisibility({ currentTarget: header });
-              }
-            });
-
-            header.addEventListener("click", toggleFolderVisibility);
-
             fileListElement.appendChild(header);
+            header.addEventListener("click", toggleFolderVisibility);
 
             let seq = 1;
             for (const fileData of folderFiles) {
@@ -743,14 +688,13 @@
 
               tr.innerHTML = `
                 <td class="col-seq">${seq++}</td>
-                <td class="col-name">
-                  <span aria-hidden="true">${fileData.name.substring(0, fileData.name.lastIndexOf(".")) || fileData.name}</span>
-                  <span class="sr-only">${fileData.name}</span>
-                </td>
-                <td class="col-type">
-                  <i class="${getFileIconClass(fileData.name)}" aria-hidden="true"></i>
-                  <span class="sr-only">${getAccessibleFileTypeName(fileData.name)}</span>
-                </td>
+                <td class="col-name">${
+                  fileData.name.substring(0, fileData.name.lastIndexOf(".")) ||
+                  fileData.name
+                }</td>
+                <td class="col-type"><i class="${getFileIconClass(
+                  fileData.name
+                )}"></i></td>
               `;
 
               tr.addEventListener("click", () =>
@@ -820,7 +764,6 @@
               if (searchTerm !== "" || selectedType !== "all") {
                 h.style.display = hasVisible ? "" : "none";
                 h.dataset.isExpanded = hasVisible ? "true" : "false";
-                h.setAttribute("aria-expanded", hasVisible ? "true" : "false");
 
                 if (hasVisible) {
                   document
@@ -912,7 +855,7 @@
           if (
             ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp"].includes(ext)
           ) {
-            viewerElement.innerHTML = `<img src="${fileUrl}" alt="معاينة للملف: ${filename}" />`;
+            viewerElement.innerHTML = `<img src="${fileUrl}" alt="معاينة ${filename}" />`;
             return;
           }
 
