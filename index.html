@@ -1,12 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>مستعرض مستندات وملفات منوعة</title>
-
+    <title>مستعرض ملفات  الملتقى</title>
+    
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -63,7 +63,7 @@
       }
 
       .sidebar {
-        width: 380px;
+        width: 400px;
         min-width: 320px;
         background-color: var(--panel-bg);
         border-left: 1px solid var(--border-color);
@@ -90,8 +90,8 @@
 
       .sidebar-header h3 {
         margin: 0;
-        font-size: 1.6em;
-        font-weight: 700;
+        font-size: 1em;
+        font-weight: 500;
       }
 
       #dark-mode-toggle {
@@ -406,7 +406,7 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="top-row">
-            <h3>📂 فهرس الملفات</h3>
+            <h3>📂 الفهرس </h3>
             <button id="dark-mode-toggle" title="الوضع الداكن / الفاتح">
               <i class="fa-solid fa-moon"></i>
             </button>
@@ -446,7 +446,7 @@
       <main class="main-content">
         <div class="viewer-controls">
           <div class="header-info">
-            <h2>مستعرض مستندات وملفات منوعة</h2>
+            <h2>مستعرض ملفات الملتقى</h2>
             <span class="programmer-credit">github</span>
           </div>
 
@@ -488,8 +488,8 @@
         const INDEX_URL = "documents/index.json";
         const BRANCH = "main";
 
-        const defaultFile = "تعليمات.pdf";
-        const pinnedFiles = ["تعليمات.pdf"];
+        const defaultFile = "";
+        const pinnedFiles = [""];
         const PINNED_FOLDER = "📌 ملفات مثبتة";
         const GENERAL_FOLDER = "ملفات عامة";
 
@@ -933,3 +933,11 @@
     </script>
   </body>
 </html>
+
+
+
+
+
+
+
+
