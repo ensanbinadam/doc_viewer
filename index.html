@@ -3,423 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة ملفات المدرسة الذكي</title>
+    <title>مدير ملفات الملتقى - لوحة المعلم</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #1e293b; --accent: #c5a059; --bg: #f8fafc;
-            --panel: #ffffff; --border: #e2e8f0; --text: #334155;
-            --hover: #f1f5f9; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --primary-color: #007bff; --secondary-color: #1a73e8; --bg-color: #f4f7f6;
+            --panel-bg: #ffffff; --border-color: #e0e4e7; --text-color: #333d47;
+            --light-text: #707b85; --hover-bg: #f0f3f5; --danger: #dc3545; --success: #28a745;
         }
         body.dark-mode {
-            --primary: #0f172a; --bg: #0f172a; --panel: #1e293b;
-            --border: #334155; --text: #f1f5f9; --hover: #334155;
+            --bg-color: #121212; --panel-bg: #1e1e1e; --border-color: #333333;
+            --text-color: #e0e0e0; --light-text: #b0b0b0; --hover-bg: #2a2a2a;
         }
-        body { font-family: 'Almarai', sans-serif; margin: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; transition: 0.3s; }
-        
-        /* Sidebar Styles */
-        aside { width: 350px; background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow); z-index: 10; transition: 0.3s; }
-        .sidebar-header { padding: 20px; background: var(--primary); color: white; text-align: center; border-bottom: 4px solid var(--accent); }
-        .sidebar-header h2 { margin: 0; font-size: 1.1rem; }
-        
-        .controls { padding: 15px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--border); }
-        .btn { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover { filter: brightness(1.1); }
-        .btn-danger { background: #ef4444; color: white; }
-        .input-box { padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); width: 100%; box-sizing: border-box; }
 
-        /* File Tree Styles */
-        .file-tree { flex: 1; overflow-y: auto; padding: 10px; }
-        .folder-group { margin-bottom: 5px; }
-        .folder-header { 
-            padding: 12px; background: var(--hover); border-radius: 8px; cursor: pointer; 
-            display: flex; justify-content: space-between; align-items: center; font-weight: bold;
-            border: 1px solid var(--border); margin-bottom: 5px;
-        }
-        .folder-header:hover { background: rgba(197, 160, 89, 0.1); color: var(--accent); }
-        .folder-content { display: none; padding-right: 15px; border-right: 2px solid var(--border); margin-right: 10px; animation: slideDown 0.3s ease; }
-        .folder-content.open { display: block; }
-        
-        .file-item { 
-            padding: 8px 10px; border-bottom: 1px solid var(--border); cursor: pointer; 
-            display: flex; align-items: center; gap: 10px; transition: 0.2s; font-size: 0.9rem;
-        }
-        .file-item:hover { background: var(--hover); padding-right: 15px; }
-        .file-item.active { background: rgba(197, 160, 89, 0.1); border-right: 3px solid var(--accent); }
-        .file-actions { margin-right: auto; opacity: 0; transition: 0.2s; display: flex; gap: 8px; }
-        .file-item:hover .file-actions { opacity: 1; }
-        .action-icon { cursor: pointer; font-size: 0.9rem; }
-        .action-icon:hover { transform: scale(1.2); }
+        body { font-family: "Cairo", sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; transition: 0.3s; }
+        .container { display: flex; width: 100%; height: 100%; }
 
-        /* Main Viewer Styles */
-        main { flex: 1; display: flex; flex-direction: column; background: var(--bg); padding: 20px; }
-        .viewer-container { flex: 1; background: var(--panel); border-radius: 15px; border: 1px solid var(--border); overflow: hidden; position: relative; box-shadow: var(--shadow); }
+        /* Sidebar & Controls */
+        .sidebar { width: 400px; min-width: 320px; background-color: var(--panel-bg); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.05); z-index: 10; }
+        .sidebar-header { padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; background: var(--panel-bg); }
+        .top-row { display: flex; justify-content: space-between; align-items: center; }
+        
+        .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
+        .btn { border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.9em; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; color: white; }
+        .btn-upload { background: var(--success); grid-column: span 2; }
+        .btn-refresh { background: var(--secondary-color); }
+        .btn-logout { background: var(--light-text); }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .search-box { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--hover-bg); color: var(--text-color); box-sizing: border-box; font-family: inherit; }
+
+        /* Table Styles */
+        .table-container { overflow-y: auto; flex: 1; padding: 0 10px; }
+        #file-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; }
+        #file-table tbody tr { cursor: pointer; background: var(--panel-bg); transition: 0.2s; border-radius: 6px; }
+        #file-table tbody tr:hover { background: var(--hover-bg); transform: translateX(-3px); }
+        #file-table tbody tr.active { background: var(--primary-color); color: white; }
+        #file-table tbody tr.active i { color: white !important; }
+        
+        #file-table td { padding: 10px; vertical-align: middle; border-bottom: 1px solid var(--border-color); }
+        .col-icon { width: 30px; text-align: center; font-size: 1.2em; }
+        .col-actions { text-align: left; width: 60px; }
+        .action-icon { cursor: pointer; margin: 0 5px; opacity: 0.6; transition: 0.2s; }
+        .action-icon:hover { opacity: 1; transform: scale(1.2); }
+        .delete-icon:hover { color: var(--danger); }
+        .edit-icon:hover { color: var(--secondary-color); }
+
+        /* Folder Headers */
+        .folder-header { background: var(--hover-bg) !important; font-weight: bold; color: var(--primary-color); }
+        .folder-header td { border-bottom: 2px solid var(--border-color) !important; }
+
+        /* Viewer */
+        .main-content { flex: 1; padding: 20px; display: flex; flex-direction: column; background: var(--bg-color); }
+        .viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border-color); }
+        #viewer { flex: 1; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
         iframe, video, img { width: 100%; height: 100%; border: none; object-fit: contain; }
-        .empty-state { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #94a3b8; }
 
         /* Modals */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--panel); width: 90%; max-width: 400px; margin: 10vh auto; padding: 25px; border-radius: 15px; text-align: center; animation: zoomIn 0.3s; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--panel-bg); margin: 15vh auto; padding: 25px; width: 90%; max-width: 400px; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideDown 0.3s; }
+        @keyframes slideDown { from {transform: translateY(-20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
         
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+
+        /* Loading Overlay */
+        #loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; color: var(--primary-color); font-weight: bold; }
         
-        /* Mobile */
-        @media (max-width: 768px) { body { flex-direction: column; } aside { width: 100%; height: 50vh; } }
+        @media (max-width: 768px) { .container { flex-direction: column; } .sidebar { width: 100%; height: 50vh; } }
     </style>
 </head>
 <body>
 
     <div id="authModal" class="modal" style="display: flex;">
         <div class="modal-content">
-            <i class="fa-solid fa-shield-halved fa-3x" style="color: var(--accent); margin-bottom: 20px;"></i>
-            <h3>بوابة المعلمين</h3>
-            <p>يرجى إدخال مفتاح المرور (Token) للوصول</p>
-            <input type="password" id="authTokenInput" class="input-box" placeholder="github_pat_..." style="text-align: center;">
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" style="flex: 1;" onclick="saveToken()">دخول</button>
-            </div>
-            <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 15px;">يتم حفظ الرمز في متصفحك فقط</p>
+            <i class="fa-solid fa-lock fa-3x" style="color: var(--primary-color);"></i>
+            <h3>تسجيل الدخول</h3>
+            <p>أدخل رمز الوصول (GitHub Token) للإدارة</p>
+            <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx" style="text-align: center;">
+            <button class="btn btn-upload" style="width:100%" onclick="saveToken()">دخول</button>
         </div>
     </div>
 
-    <div id="loadingModal" class="modal"><div class="modal-content"><i class="fas fa-spinner fa-spin fa-2x"></i><h3 id="loadingText">جاري العمل...</h3></div></div>
-    
-    <div id="renameModal" class="modal"><div class="modal-content">
-        <h3>تغيير الاسم</h3>
-        <input id="renameInput" class="input-box">
-        <div style="margin-top:15px; display:flex; gap:10px;">
-            <button onclick="confirmRename()" class="btn btn-primary" style="flex:1">حفظ</button>
-            <button onclick="closeModal('renameModal')" class="btn" style="flex:1">إلغاء</button>
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <h3>تغيير اسم الملف</h3>
+            <input type="text" id="renameInput">
+            <div class="modal-buttons">
+                <button class="btn btn-upload" onclick="executeRename()" style="flex:1">حفظ</button>
+                <button class="btn btn-logout" onclick="closeModal('renameModal')" style="flex:1">إلغاء</button>
+            </div>
         </div>
-    </div></div>
+    </div>
 
-    <div class="container" style="display: flex; width: 100%; height: 100%;">
-        <aside>
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <h3>رفع ملف جديد</h3>
+            <input type="file" id="fileInput" style="padding: 10px;">
+            <input type="text" id="folderNameInput" placeholder="اسم المجلد (مثال: تعاميم)">
+            <div class="modal-buttons">
+                <button class="btn btn-upload" onclick="executeUpload()" style="flex:1">رفع</button>
+                <button class="btn btn-logout" onclick="closeModal('uploadModal')" style="flex:1">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader"><i class="fas fa-spinner fa-spin fa-3x"></i><p style="margin-top:10px">جاري التنفيذ...</p></div>
+
+    <div class="container">
+        <aside class="sidebar">
             <div class="sidebar-header">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2>📂 إدارة ملفات المدرسة</h2>
-                    <i class="fa-solid fa-moon" style="cursor: pointer;" onclick="toggleTheme()"></i>
+                <div class="top-row">
+                    <h3>📂 ملفات الملتقى</h3>
+                    <i class="fa-solid fa-moon" id="themeIcon" style="cursor: pointer;" onclick="toggleTheme()"></i>
                 </div>
-                <small style="opacity: 0.8;">تحفيظ القرآن بالبجادية</small>
-            </div>
-            
-            <div class="controls">
-                <input type="file" id="fileInput" hidden onchange="handleFileUpload(this)">
-                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> رفع ملف جديد
-                </button>
-                <input type="text" class="input-box" placeholder="🔍 بحث في الملفات..." oninput="filterFiles(this.value)">
-                <div style="display: flex; gap: 5px;">
-                     <button class="btn" style="flex:1; font-size:0.8rem" onclick="logout()"><i class="fa-solid fa-sign-out"></i> خروج</button>
-                     <button class="btn" style="flex:1; font-size:0.8rem" onclick="refreshFiles()"><i class="fa-solid fa-rotate"></i> تحديث</button>
+                
+                <div class="control-panel">
+                    <button class="btn btn-upload" onclick="openModal('uploadModal')"><i class="fa-solid fa-cloud-arrow-up"></i> رفع ملف</button>
+                    <button class="btn btn-refresh" onclick="fetchFiles()"><i class="fa-solid fa-rotate"></i> تحديث</button>
+                    <button class="btn btn-logout" onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> خروج</button>
                 </div>
+
+                <input type="text" id="searchInput" class="search-box" placeholder="🔍 بحث سريع..." oninput="filterFiles()">
             </div>
 
-            <div id="fileTree" class="file-tree">
-                </div>
+            <div class="table-container">
+                <table id="file-table">
+                    <tbody id="file-list-body"></tbody>
+                </table>
+            </div>
         </aside>
 
-        <main>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
-                <h3 id="viewerTitle" style="margin: 0;">الرجاء اختيار ملف</h3>
-                <a id="downloadBtn" href="#" target="_blank" class="btn btn-primary" style="display: none; padding: 5px 15px; font-size: 0.9rem;">
+        <main class="main-content">
+            <div class="viewer-header">
+                <h3 id="currentFileName" style="margin:0">لم يتم اختيار ملف</h3>
+                <a id="downloadBtn" href="#" target="_blank" class="btn btn-upload" style="display: none; padding: 5px 15px; width: auto;">
                     <i class="fa-solid fa-download"></i> تحميل
                 </a>
             </div>
-            <div id="viewer" class="viewer-container">
-                <div class="empty-state">
-                    <i class="fa-regular fa-folder-open fa-5x"></i>
-                    <p>اختر ملفاً من القائمة الجانبية للمعاينـة</p>
+            <div id="viewer">
+                <div style="text-align: center; color: var(--light-text);">
+                    <i class="fa-regular fa-folder-open fa-4x"></i>
+                    <p>اختر ملفاً للعرض</p>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        // --- إعدادات المدرسة ---
+        // ================= إعدادات الاتصال =================
         const CONFIG = {
-            username: 'ensanbinadam', // اسم حساب GitHub
-            repo: 'doc_viewer',       // اسم المستودع
-            branch: 'main',        // الفرع
-            path: 'documents'          // المجلد داخل المستودع
+            owner: 'ensanbinadam',   // ضع اسم حسابك هنا
+            repo: 'doc_viewer',     // ضع اسم المستودع هنا
+            path: 'documents',      // المجلد
+            branch: 'main'
         };
 
-        // --- المتغيرات العامة ---
         let allFiles = [];
-        let currentFile = null;
+        let selectedFile = null; // يحمل كائن الملف الحالي مع الـ SHA
 
-        // --- التهيئة عند البدء ---
+        // ================= التهيئة =================
         document.addEventListener("DOMContentLoaded", () => {
-            if(localStorage.getItem('github_token')) {
+            if(localStorage.getItem('gh_token')) {
                 document.getElementById('authModal').style.display = 'none';
                 fetchFiles();
             }
-            if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+            if(localStorage.getItem('dark-mode') === 'true') toggleTheme();
         });
 
-        // --- دوال المصادقة والأمان ---
         function saveToken() {
-            const token = document.getElementById('authTokenInput').value.trim();
-            if(token) {
-                localStorage.setItem('github_token', token);
-                document.getElementById('authModal').style.display = 'none';
-                fetchFiles();
-            } else {
-                alert("يرجى إدخال الرمز");
-            }
+            const t = document.getElementById('tokenInput').value.trim();
+            if(t) { localStorage.setItem('gh_token', t); document.getElementById('authModal').style.display = 'none'; fetchFiles(); }
         }
+        function logout() { localStorage.removeItem('gh_token'); location.reload(); }
+        function openModal(id) { document.getElementById(id).style.display = 'block'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 
-        function logout() {
-            localStorage.removeItem('github_token');
-            location.reload();
-        }
-
-        function getAuthHeader() {
-            return { 
-                'Authorization': `token ${localStorage.getItem('github_token')}`,
-                'Accept': 'application/vnd.github.v3+json'
+        // ================= الاتصال بـ GitHub API =================
+        async function apiRequest(endpoint, method = 'GET', body = null) {
+            const token = localStorage.getItem('gh_token');
+            const headers = { 
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
             };
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+
+            const res = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/${endpoint}`, options);
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || `Error ${res.status}`);
+            }
+            return res.json();
         }
 
-        // --- جلب البيانات ---
+        // ================= جلب وعرض الملفات =================
         async function fetchFiles() {
-            const treeDiv = document.getElementById('fileTree');
-            treeDiv.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
+            const listBody = document.getElementById('file-list-body');
+            listBody.innerHTML = '<tr><td colspan="3" style="text-align:center">جاري التحميل...</td></tr>';
             
             try {
-                const url = `https://api.github.com/repos/${CONFIG.username}/${CONFIG.repo}/contents/${CONFIG.path}`;
-                const res = await fetch(url, { headers: getAuthHeader() });
-                
-                if(!res.ok) throw new Error("فشل الاتصال: تأكد من الرمز السري");
-                
-                const data = await res.json();
+                const data = await apiRequest(`contents/${CONFIG.path}?ref=${CONFIG.branch}`);
                 allFiles = Array.isArray(data) ? data : [];
-                renderTree(allFiles);
-            } catch (err) {
-                treeDiv.innerHTML = `<div style="color:red; text-align:center;">${err.message}<br><button class="btn" onclick="logout()">إعادة إدخال الرمز</button></div>`;
+                renderTable(allFiles);
+            } catch (e) {
+                listBody.innerHTML = `<tr><td colspan="3" style="color:red; text-align:center">خطأ: ${e.message}</td></tr>`;
             }
         }
 
-        // --- معالجة الملفات والمجلدات ---
-        function parseFileName(name) {
-            // استخراج اسم المجلد من الأقواس المربعة [folder]
-            const match = name.match(/^\[(.*?)\]\s*(.*)/);
-            if (match) return { folder: match[1], cleanName: match[2], fullName: name };
-            return { folder: 'ملفات عامة', cleanName: name, fullName: name };
-        }
+        function renderTable(files) {
+            const listBody = document.getElementById('file-list-body');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            listBody.innerHTML = '';
 
-        function renderTree(files, filterText = '') {
-            const treeDiv = document.getElementById('fileTree');
-            treeDiv.innerHTML = '';
-            
             // تجميع الملفات في مجلدات
             const folders = {};
-            
             files.forEach(file => {
-                if(filterText && !file.name.toLowerCase().includes(filterText.toLowerCase())) return;
+                if (file.type !== 'file') return;
+                // تحليل الاسم: [Folder] Name
+                const match = file.name.match(/^\[(.*?)\]\s*(.*)/);
+                const folderName = match ? match[1] : 'ملفات عامة';
+                const cleanName = match ? match[2] : file.name;
                 
-                const info = parseFileName(file.name);
-                if (!folders[info.folder]) folders[info.folder] = [];
-                folders[info.folder].push({ ...file, ...info });
+                if (searchTerm && !file.name.toLowerCase().includes(searchTerm)) return;
+
+                if (!folders[folderName]) folders[folderName] = [];
+                folders[folderName].push({ ...file, cleanName });
             });
 
-            // ترتيب المجلدات وعرضها
-            Object.keys(folders).sort().forEach(folderName => {
-                const group = document.createElement('div');
-                group.className = 'folder-group';
-                
-                const header = document.createElement('div');
-                header.className = 'folder-header';
-                header.innerHTML = `<span><i class="fa-solid fa-folder" style="color:#fbbf24; margin-left:10px;"></i> ${folderName}</span> <span style="font-size:0.8em; opacity:0.6">${folders[folderName].length}</span>`;
-                header.onclick = () => {
-                    const content = header.nextElementSibling;
-                    content.classList.toggle('open');
-                    header.querySelector('.fa-folder').classList.toggle('fa-folder-open');
-                };
+            // الرسم
+            Object.keys(folders).sort().forEach(folder => {
+                // رأس المجلد
+                const headerRow = document.createElement('tr');
+                headerRow.className = 'folder-header';
+                headerRow.innerHTML = `<td colspan="3"><i class="fa-solid fa-folder-open"></i> ${folder} (${folders[folder].length})</td>`;
+                listBody.appendChild(headerRow);
 
-                const content = document.createElement('div');
-                content.className = 'folder-content';
-                // فتح المجلد تلقائياً عند البحث
-                if(filterText) content.classList.add('open');
-
-                folders[folderName].forEach(file => {
-                    const item = document.createElement('div');
-                    item.className = 'file-item';
-                    item.innerHTML = `
-                        <i class="${getFileIcon(file.name)}"></i>
-                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${file.cleanName}</span>
-                        <div class="file-actions">
-                            <i class="fa-solid fa-pen action-icon" style="color:var(--accent)" title="تعديل الاسم" onclick="openRename('${file.fullName}', '${file.sha}')"></i>
-                            <i class="fa-solid fa-trash action-icon" style="color:#ef4444" title="حذف" onclick="deleteFile('${file.fullName}', '${file.sha}')"></i>
-                        </div>
+                // الملفات
+                folders[folder].forEach(file => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="col-icon"><i class="${getFileIcon(file.name)}"></i></td>
+                        <td>${file.cleanName}</td>
+                        <td class="col-actions">
+                            <i class="fa-solid fa-pen action-icon edit-icon" onclick="promptRename('${file.name}', '${file.sha}', event)"></i>
+                            <i class="fa-solid fa-trash action-icon delete-icon" onclick="deleteFile('${file.name}', '${file.sha}', event)"></i>
+                        </td>
                     `;
-                    item.onclick = (e) => {
-                        // منع تفعيل العرض عند الضغط على أزرار الحذف/التعديل
+                    tr.onclick = (e) => {
                         if(e.target.classList.contains('action-icon')) return;
-                        loadViewer(file);
-                        document.querySelectorAll('.file-item').forEach(i => i.classList.remove('active'));
-                        item.classList.add('active');
+                        document.querySelectorAll('tr').forEach(r => r.classList.remove('active'));
+                        tr.classList.add('active');
+                        loadFileViewer(file);
                     };
-                    content.appendChild(item);
+                    listBody.appendChild(tr);
                 });
-
-                group.appendChild(header);
-                group.appendChild(content);
-                treeDiv.appendChild(group);
             });
         }
 
-        // --- العارض (Viewer) ---
-        function loadViewer(file) {
-            const viewer = document.getElementById('viewer');
-            const title = document.getElementById('viewerTitle');
-            const dlBtn = document.getElementById('downloadBtn');
-            const ext = file.name.split('.').pop().toLowerCase();
-            const url = file.download_url;
-
-            title.innerText = parseFileName(file.name).cleanName;
-            dlBtn.href = url;
-            dlBtn.style.display = 'inline-flex';
+        // ================= العمليات (رفع، حذف، تعديل) =================
+        
+        // 1. الرفع
+        async function executeUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const folderInput = document.getElementById('folderNameInput');
+            const file = fileInput.files[0];
             
-            viewer.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin fa-3x"></i></div>';
-
-            let content = '';
-            // صور
-            if(['jpg','jpeg','png','gif','svg'].includes(ext)) {
-                content = `<img src="${url}">`;
-            }
-            // فيديو وصوت
-            else if(['mp4','webm'].includes(ext)) {
-                content = `<video controls src="${url}" style="width:100%; height:100%"></video>`;
-            }
-            // ملفات أوفيس (Word, Excel, PPT) - استخدام عارض مايكروسوفت
-            else if(['docx','xlsx','pptx','doc','xls','ppt'].includes(ext)) {
-                content = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}"></iframe>`;
-            }
-            // PDF وملفات أخرى
-            else if(ext === 'pdf') {
-                content = `<iframe src="${url}"></iframe>`;
-            } 
-            else {
-                // استخدام عارض جوجل للملفات النصية وغيرها
-                content = `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true"></iframe>`;
-            }
+            if (!file) return alert('اختر ملفاً أولاً');
             
-            setTimeout(() => viewer.innerHTML = content, 200);
-        }
+            let folder = folderInput.value.trim() || 'ملفات عامة';
+            const fileName = `[${folder}] ${file.name}`; // التسمية التلقائية
 
-        // --- العمليات (Upload, Delete, Rename) ---
-        async function handleFileUpload(input) {
-            const file = input.files[0];
-            if(!file) return;
-
-            // طلب اسم المجلد من المستخدم
-            const folderName = prompt("أدخل اسم المجلد (مثال: أول ابتدائي):", "ملفات عامة");
-            if(!folderName) return;
-
-            const finalName = `[${folderName}] ${file.name}`;
-            showLoading(true, "جاري الرفع...");
-
+            showLoader(true);
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
                 const content = reader.result.split(',')[1];
                 try {
-                    await githubApiRequest('PUT', finalName, {
-                        message: `Upload ${finalName}`,
-                        content: content
+                    // نتحقق إذا الملف موجود عشان الـ SHA (اختياري للرفع، لكن GitHub يطلبه للتحديث)
+                    // هنا سنقوم بالرفع المباشر كملف جديد
+                    await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(fileName)}`, 'PUT', {
+                        message: `Upload ${fileName}`,
+                        content: content,
+                        branch: CONFIG.branch
                     });
-                    showLoading(false);
+                    closeModal('uploadModal');
                     fetchFiles();
-                } catch(e) {
-                    alert("خطأ في الرفع: " + e.message);
-                    showLoading(false);
-                }
+                } catch (e) { alert("فشل الرفع: " + e.message); }
+                showLoader(false);
             };
         }
 
-        async function deleteFile(name, sha) {
-            if(!confirm(`هل أنت متأكد من حذف الملف:\n${name}؟`)) return;
-            showLoading(true, "جاري الحذف...");
+        // 2. الحذف (يحتاج SHA)
+        async function deleteFile(name, sha, event) {
+            event.stopPropagation();
+            if (!confirm(`هل أنت متأكد من حذف: ${name}؟`)) return;
+            
+            showLoader(true);
             try {
-                await githubApiRequest('DELETE', name, {
+                await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(name)}`, 'DELETE', {
                     message: `Delete ${name}`,
-                    sha: sha
+                    sha: sha, // <--- هذا هو الحل لمشكلة 422
+                    branch: CONFIG.branch
                 });
                 fetchFiles();
-            } catch(e) { alert("خطأ: " + e.message); }
-            showLoading(false);
+            } catch (e) { alert("فشل الحذف: " + e.message); }
+            showLoader(false);
         }
 
-        let renameTarget = null;
-        function openRename(name, sha) {
-            renameTarget = { name, sha };
+        // 3. إعادة التسمية
+        function promptRename(name, sha, event) {
+            event.stopPropagation();
+            selectedFile = { name, sha };
             document.getElementById('renameInput').value = name;
-            document.getElementById('renameModal').style.display = 'block';
+            openModal('renameModal');
         }
 
-        async function confirmRename() {
-            const newName = document.getElementById('renameInput').value;
-            if(!newName || newName === renameTarget.name) return;
-            
-            showLoading(true, "جاري تغيير الاسم...");
+        async function executeRename() {
+            const newName = document.getElementById('renameInput').value.trim();
+            if (!newName || newName === selectedFile.name) return;
+
+            showLoader(true);
             try {
-                // 1. Get content of old file
-                const oldFileRes = await fetch(`https://api.github.com/repos/${CONFIG.username}/${CONFIG.repo}/contents/${CONFIG.path}/${renameTarget.name}`, { headers: getAuthHeader() });
-                const oldFileData = await oldFileRes.json();
+                // الخطوة 1: جلب محتوى الملف القديم
+                const oldFile = await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(selectedFile.name)}`);
                 
-                // 2. Create new file with old content
-                await githubApiRequest('PUT', newName, {
-                    message: `Rename ${renameTarget.name} to ${newName}`,
-                    content: oldFileData.content // Content is already base64
+                // الخطوة 2: إنشاء ملف جديد بالمحتوى القديم
+                await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(newName)}`, 'PUT', {
+                    message: `Rename to ${newName}`,
+                    content: oldFile.content,
+                    branch: CONFIG.branch
                 });
 
-                // 3. Delete old file
-                await githubApiRequest('DELETE', renameTarget.name, {
-                    message: `Delete old file ${renameTarget.name}`,
-                    sha: renameTarget.sha
+                // الخطوة 3: حذف الملف القديم باستخدام الـ SHA
+                await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(selectedFile.name)}`, 'DELETE', {
+                    message: `Delete old file`,
+                    sha: selectedFile.sha,
+                    branch: CONFIG.branch
                 });
 
                 closeModal('renameModal');
                 fetchFiles();
-            } catch(e) { alert("خطأ: " + e.message); }
-            showLoading(false);
+            } catch (e) { alert("فشل التعديل: " + e.message); }
+            showLoader(false);
         }
 
-        // --- أدوات مساعدة ---
-        async function githubApiRequest(method, filename, body) {
-            const res = await fetch(`https://api.github.com/repos/${CONFIG.username}/${CONFIG.repo}/contents/${CONFIG.path}/${encodeURIComponent(filename)}`, {
-                method: method,
-                headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...body, branch: CONFIG.branch })
-            });
-            if(!res.ok) throw new Error(await res.text());
-            return res.json();
+        // ================= العارض (Viewer) =================
+        function loadFileViewer(file) {
+            const viewer = document.getElementById('viewer');
+            const ext = file.name.split('.').pop().toLowerCase();
+            const url = file.download_url;
+            
+            document.getElementById('currentFileName').innerText = file.cleanName;
+            document.getElementById('downloadBtn').href = url;
+            document.getElementById('downloadBtn').style.display = 'inline-flex';
+
+            viewer.innerHTML = '<i class="fas fa-spinner fa-spin fa-3x"></i>';
+
+            setTimeout(() => {
+                if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) 
+                    viewer.innerHTML = `<img src="${url}">`;
+                else if (['mp4', 'webm'].includes(ext)) 
+                    viewer.innerHTML = `<video controls src="${url}"></video>`;
+                else if (['pdf'].includes(ext))
+                     viewer.innerHTML = `<iframe src="${url}"></iframe>`;
+                else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext))
+                    viewer.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}"></iframe>`;
+                else 
+                    viewer.innerHTML = `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true"></iframe>`;
+            }, 100);
         }
 
+        // ================= أدوات =================
+        function filterFiles() { renderTable(allFiles); }
         function getFileIcon(name) {
             const ext = name.split('.').pop().toLowerCase();
-            if(ext === 'pdf') return 'fa-solid fa-file-pdf text-red-500';
-            if(['doc','docx'].includes(ext)) return 'fa-solid fa-file-word text-blue-500';
-            if(['xls','xlsx'].includes(ext)) return 'fa-solid fa-file-excel text-green-500';
-            if(['jpg','png'].includes(ext)) return 'fa-solid fa-file-image text-purple-500';
-            return 'fa-solid fa-file text-gray-400';
-        }
-
-        function filterFiles(text) { renderTree(allFiles, text); }
-        function refreshFiles() { fetchFiles(); }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function showLoading(show, text) { 
-            document.getElementById('loadingModal').style.display = show ? 'block' : 'none'; 
-            if(text) document.getElementById('loadingText').innerText = text;
+            if (ext === 'pdf') return 'fa-solid fa-file-pdf style="color:#dc3545"';
+            if (['doc','docx'].includes(ext)) return 'fa-solid fa-file-word style="color:#007bff"';
+            if (['xls','xlsx'].includes(ext)) return 'fa-solid fa-file-excel style="color:#28a745"';
+            if (['jpg','png'].includes(ext)) return 'fa-solid fa-file-image style="color:#ffc107"';
+            return 'fa-solid fa-file style="color:#6c757d"';
         }
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('dark-mode', isDark);
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
     </script>
 </body>
