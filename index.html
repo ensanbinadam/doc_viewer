@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مدير ملفات الملتقى - لوحة المعلم</title>
+    <link rel="icon" href="data:,">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -28,7 +29,7 @@
         .top-row { display: flex; justify-content: space-between; align-items: center; }
         
         .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
-        .btn { border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.9em; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; color: white; }
+        .btn { border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.9em; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; color: white; text-decoration: none; }
         .btn-upload { background: var(--success); grid-column: span 2; }
         .btn-refresh { background: var(--secondary-color); }
         .btn-logout { background: var(--light-text); }
@@ -52,13 +53,12 @@
         .delete-icon:hover { color: var(--danger); }
         .edit-icon:hover { color: var(--secondary-color); }
 
-        /* Folder Headers */
         .folder-header { background: var(--hover-bg) !important; font-weight: bold; color: var(--primary-color); }
-        .folder-header td { border-bottom: 2px solid var(--border-color) !important; }
-
+        
         /* Viewer */
         .main-content { flex: 1; padding: 20px; display: flex; flex-direction: column; background: var(--bg-color); }
         .viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border-color); }
+        .header-actions { display: flex; gap: 10px; }
         #viewer { flex: 1; background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
         iframe, video, img { width: 100%; height: 100%; border: none; object-fit: contain; }
 
@@ -70,7 +70,6 @@
         .modal input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
         .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
 
-        /* Loading Overlay */
         #loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; color: var(--primary-color); font-weight: bold; }
         
         @media (max-width: 768px) { .container { flex-direction: column; } .sidebar { width: 100%; height: 50vh; } }
@@ -82,9 +81,11 @@
         <div class="modal-content">
             <i class="fa-solid fa-lock fa-3x" style="color: var(--primary-color);"></i>
             <h3>تسجيل الدخول</h3>
-            <p>أدخل رمز الوصول (GitHub Token) للإدارة</p>
-            <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx" style="text-align: center;">
-            <button class="btn btn-upload" style="width:100%" onclick="saveToken()">دخول</button>
+            <p>أدخل رمز الوصول (GitHub Token)</p>
+            <form onsubmit="saveToken(); return false;">
+                <input type="password" id="tokenInput" autocomplete="current-password" placeholder="ghp_xxxxxxxxxxxx" style="text-align: center;">
+                <button type="submit" class="btn btn-upload" style="width:100%">دخول</button>
+            </form>
         </div>
     </div>
 
@@ -140,9 +141,14 @@
         <main class="main-content">
             <div class="viewer-header">
                 <h3 id="currentFileName" style="margin:0">لم يتم اختيار ملف</h3>
-                <a id="downloadBtn" href="#" target="_blank" class="btn btn-upload" style="display: none; padding: 5px 15px; width: auto;">
-                    <i class="fa-solid fa-download"></i> تحميل
-                </a>
+                <div class="header-actions">
+                    <a id="openNewTabBtn" href="#" target="_blank" class="btn btn-refresh" style="display: none; width: auto;">
+                        <i class="fa-solid fa-up-right-from-square"></i> فتح
+                    </a>
+                    <a id="downloadBtn" href="#" target="_blank" class="btn btn-upload" style="display: none; padding: 5px 15px; width: auto;">
+                        <i class="fa-solid fa-download"></i> تحميل
+                    </a>
+                </div>
             </div>
             <div id="viewer">
                 <div style="text-align: center; color: var(--light-text);">
@@ -156,16 +162,22 @@
     <script>
         // ================= إعدادات الاتصال =================
         const CONFIG = {
-            owner: 'ensanbinadam',   // ضع اسم حسابك هنا
-            repo: 'doc_viewer',     // ضع اسم المستودع هنا
-            path: 'documents',      // المجلد
+            owner: 'ensanbinadam',   
+            repo: 'doc_viewer',     
+            path: 'documents',      
             branch: 'main'
         };
 
         let allFiles = [];
-        let selectedFile = null; // يحمل كائن الملف الحالي مع الـ SHA
+        let selectedFile = null;
 
-        // ================= التهيئة =================
+        // دالة مساعدة لتوليد رابط المشاهدة (GitHub Pages URL) بدلاً من رابط API
+        function getLiveUrl(filename) {
+            // تحويل المسار والاسم إلى رابط صفحة ويب حقيقي
+            // https://username.github.io/repo/path/filename
+            return `https://${CONFIG.owner}.github.io/${CONFIG.repo}/${CONFIG.path}/${encodeURIComponent(filename)}`;
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             if(localStorage.getItem('gh_token')) {
                 document.getElementById('authModal').style.display = 'none';
@@ -183,7 +195,6 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
 
-        // ================= الاتصال بـ GitHub API =================
         async function apiRequest(endpoint, method = 'GET', body = null) {
             const token = localStorage.getItem('gh_token');
             const headers = { 
@@ -202,11 +213,9 @@
             return res.json();
         }
 
-        // ================= جلب وعرض الملفات =================
         async function fetchFiles() {
             const listBody = document.getElementById('file-list-body');
             listBody.innerHTML = '<tr><td colspan="3" style="text-align:center">جاري التحميل...</td></tr>';
-            
             try {
                 const data = await apiRequest(`contents/${CONFIG.path}?ref=${CONFIG.branch}`);
                 allFiles = Array.isArray(data) ? data : [];
@@ -220,31 +229,22 @@
             const listBody = document.getElementById('file-list-body');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             listBody.innerHTML = '';
-
-            // تجميع الملفات في مجلدات
             const folders = {};
             files.forEach(file => {
                 if (file.type !== 'file') return;
-                // تحليل الاسم: [Folder] Name
                 const match = file.name.match(/^\[(.*?)\]\s*(.*)/);
                 const folderName = match ? match[1] : 'ملفات عامة';
                 const cleanName = match ? match[2] : file.name;
-                
                 if (searchTerm && !file.name.toLowerCase().includes(searchTerm)) return;
-
                 if (!folders[folderName]) folders[folderName] = [];
                 folders[folderName].push({ ...file, cleanName });
             });
 
-            // الرسم
             Object.keys(folders).sort().forEach(folder => {
-                // رأس المجلد
                 const headerRow = document.createElement('tr');
                 headerRow.className = 'folder-header';
                 headerRow.innerHTML = `<td colspan="3"><i class="fa-solid fa-folder-open"></i> ${folder} (${folders[folder].length})</td>`;
                 listBody.appendChild(headerRow);
-
-                // الملفات
                 folders[folder].forEach(file => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
@@ -266,27 +266,19 @@
             });
         }
 
-        // ================= العمليات (رفع، حذف، تعديل) =================
-        
-        // 1. الرفع
         async function executeUpload() {
             const fileInput = document.getElementById('fileInput');
             const folderInput = document.getElementById('folderNameInput');
             const file = fileInput.files[0];
-            
             if (!file) return alert('اختر ملفاً أولاً');
-            
             let folder = folderInput.value.trim() || 'ملفات عامة';
-            const fileName = `[${folder}] ${file.name}`; // التسمية التلقائية
-
+            const fileName = `[${folder}] ${file.name}`;
             showLoader(true);
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
                 const content = reader.result.split(',')[1];
                 try {
-                    // نتحقق إذا الملف موجود عشان الـ SHA (اختياري للرفع، لكن GitHub يطلبه للتحديث)
-                    // هنا سنقوم بالرفع المباشر كملف جديد
                     await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(fileName)}`, 'PUT', {
                         message: `Upload ${fileName}`,
                         content: content,
@@ -294,21 +286,20 @@
                     });
                     closeModal('uploadModal');
                     fetchFiles();
+                    alert('تم الرفع! قد يستغرق الملف دقيقة ليظهر في المعاينة (بسبب تحديث GitHub Pages).');
                 } catch (e) { alert("فشل الرفع: " + e.message); }
                 showLoader(false);
             };
         }
 
-        // 2. الحذف (يحتاج SHA)
         async function deleteFile(name, sha, event) {
             event.stopPropagation();
             if (!confirm(`هل أنت متأكد من حذف: ${name}؟`)) return;
-            
             showLoader(true);
             try {
                 await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(name)}`, 'DELETE', {
                     message: `Delete ${name}`,
-                    sha: sha, // <--- هذا هو الحل لمشكلة 422
+                    sha: sha,
                     branch: CONFIG.branch
                 });
                 fetchFiles();
@@ -316,7 +307,6 @@
             showLoader(false);
         }
 
-        // 3. إعادة التسمية
         function promptRename(name, sha, event) {
             event.stopPropagation();
             selectedFile = { name, sha };
@@ -327,59 +317,70 @@
         async function executeRename() {
             const newName = document.getElementById('renameInput').value.trim();
             if (!newName || newName === selectedFile.name) return;
-
             showLoader(true);
             try {
-                // الخطوة 1: جلب محتوى الملف القديم
                 const oldFile = await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(selectedFile.name)}`);
-                
-                // الخطوة 2: إنشاء ملف جديد بالمحتوى القديم
                 await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(newName)}`, 'PUT', {
                     message: `Rename to ${newName}`,
                     content: oldFile.content,
                     branch: CONFIG.branch
                 });
-
-                // الخطوة 3: حذف الملف القديم باستخدام الـ SHA
                 await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(selectedFile.name)}`, 'DELETE', {
                     message: `Delete old file`,
                     sha: selectedFile.sha,
                     branch: CONFIG.branch
                 });
-
                 closeModal('renameModal');
                 fetchFiles();
             } catch (e) { alert("فشل التعديل: " + e.message); }
             showLoader(false);
         }
 
-        // ================= العارض (Viewer) =================
+        // ================= العارض (المعدل كلياً) =================
         function loadFileViewer(file) {
             const viewer = document.getElementById('viewer');
             const ext = file.name.split('.').pop().toLowerCase();
-            const url = file.download_url;
+            
+            // نستخدم الرابط المباشر (GitHub Pages) بدلاً من رابط التحميل (Raw)
+            // لحل مشكلة عرض HTML و PDF
+            const liveUrl = getLiveUrl(file.name);
+            const downloadUrl = file.download_url; // رابط احتياطي
             
             document.getElementById('currentFileName').innerText = file.cleanName;
-            document.getElementById('downloadBtn').href = url;
-            document.getElementById('downloadBtn').style.display = 'inline-flex';
+            
+            // إعداد أزرار التحميل والفتح
+            const dlBtn = document.getElementById('downloadBtn');
+            const openBtn = document.getElementById('openNewTabBtn');
+            
+            dlBtn.href = downloadUrl;
+            dlBtn.style.display = 'inline-flex';
+            
+            openBtn.href = liveUrl;
+            openBtn.style.display = 'inline-flex';
 
             viewer.innerHTML = '<i class="fas fa-spinner fa-spin fa-3x"></i>';
 
             setTimeout(() => {
-                if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) 
-                    viewer.innerHTML = `<img src="${url}">`;
-                else if (['mp4', 'webm'].includes(ext)) 
-                    viewer.innerHTML = `<video controls src="${url}"></video>`;
-                else if (['pdf'].includes(ext))
-                     viewer.innerHTML = `<iframe src="${url}"></iframe>`;
-                else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext))
-                    viewer.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}"></iframe>`;
-                else 
-                    viewer.innerHTML = `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true"></iframe>`;
-            }, 100);
+                if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(ext)) {
+                    viewer.innerHTML = `<img src="${liveUrl}" onerror="this.src='${downloadUrl}'">`;
+                }
+                else if (['mp4', 'webm', 'mp3'].includes(ext)) {
+                    viewer.innerHTML = `<video controls src="${liveUrl}" style="max-height:100%"></video>`;
+                }
+                else if (['pdf', 'html', 'htm', 'txt'].includes(ext)) {
+                    // الآن سيعمل الـ iframe بشكل صحيح لأننا نستخدم Live URL
+                    viewer.innerHTML = `<iframe src="${liveUrl}" style="background:white;"></iframe>`;
+                }
+                else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)) {
+                    // عارض مايكروسوفت يعمل بشكل أفضل مع الروابط المباشرة
+                    viewer.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(liveUrl)}"></iframe>`;
+                }
+                else {
+                    viewer.innerHTML = `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(liveUrl)}&embedded=true"></iframe>`;
+                }
+            }, 200);
         }
 
-        // ================= أدوات =================
         function filterFiles() { renderTable(allFiles); }
         function getFileIcon(name) {
             const ext = name.split('.').pop().toLowerCase();
@@ -387,6 +388,7 @@
             if (['doc','docx'].includes(ext)) return 'fa-solid fa-file-word style="color:#007bff"';
             if (['xls','xlsx'].includes(ext)) return 'fa-solid fa-file-excel style="color:#28a745"';
             if (['jpg','png'].includes(ext)) return 'fa-solid fa-file-image style="color:#ffc107"';
+            if (['html','htm'].includes(ext)) return 'fa-brands fa-html5 style="color:#e34f26"';
             return 'fa-solid fa-file style="color:#6c757d"';
         }
         function toggleTheme() {
