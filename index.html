@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مدير ملفات الملتقى - لوحة المعلم</title>
     <link rel="icon" href="data:,">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
@@ -83,6 +82,7 @@
             <h3>تسجيل الدخول</h3>
             <p>أدخل رمز الوصول (GitHub Token)</p>
             <form onsubmit="saveToken(); return false;">
+                <input type="text" name="username" autocomplete="username" style="display:none;">
                 <input type="password" id="tokenInput" autocomplete="current-password" placeholder="ghp_xxxxxxxxxxxx" style="text-align: center;">
                 <button type="submit" class="btn btn-upload" style="width:100%">دخول</button>
             </form>
@@ -168,13 +168,10 @@
             branch: 'main'
         };
 
-        let allFiles = [];
-        let selectedFile = null;
+        let allFiles = []; // المتغير الذي يحمل القائمة الحية
+        let renameTargetName = null; // نستخدم الاسم فقط كمرجع
 
-        // دالة مساعدة لتوليد رابط المشاهدة (GitHub Pages URL) بدلاً من رابط API
         function getLiveUrl(filename) {
-            // تحويل المسار والاسم إلى رابط صفحة ويب حقيقي
-            // https://username.github.io/repo/path/filename
             return `https://${CONFIG.owner}.github.io/${CONFIG.repo}/${CONFIG.path}/${encodeURIComponent(filename)}`;
         }
 
@@ -205,7 +202,11 @@
             const options = { method, headers };
             if (body) options.body = JSON.stringify(body);
 
-            const res = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/${endpoint}`, options);
+            // إضافة كاش باستر لمنع المتصفح من جلب بيانات قديمة
+            const timestamp = new Date().getTime();
+            const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/${endpoint}${endpoint.includes('?') ? '&' : '?'}t=${timestamp}`;
+
+            const res = await fetch(url, options);
             if (!res.ok) {
                 const err = await res.json();
                 throw new Error(err.message || `Error ${res.status}`);
@@ -215,7 +216,9 @@
 
         async function fetchFiles() {
             const listBody = document.getElementById('file-list-body');
-            listBody.innerHTML = '<tr><td colspan="3" style="text-align:center">جاري التحميل...</td></tr>';
+            // لا نمسح المحتوى إذا كان هناك تحديث في الخلفية لتحسين التجربة، إلا في أول مرة
+            if(allFiles.length === 0) listBody.innerHTML = '<tr><td colspan="3" style="text-align:center">جاري التحميل...</td></tr>';
+            
             try {
                 const data = await apiRequest(`contents/${CONFIG.path}?ref=${CONFIG.branch}`);
                 allFiles = Array.isArray(data) ? data : [];
@@ -251,8 +254,8 @@
                         <td class="col-icon"><i class="${getFileIcon(file.name)}"></i></td>
                         <td>${file.cleanName}</td>
                         <td class="col-actions">
-                            <i class="fa-solid fa-pen action-icon edit-icon" onclick="promptRename('${file.name}', '${file.sha}', event)"></i>
-                            <i class="fa-solid fa-trash action-icon delete-icon" onclick="deleteFile('${file.name}', '${file.sha}', event)"></i>
+                            <i class="fa-solid fa-pen action-icon edit-icon" onclick="promptRename('${file.name}', event)"></i>
+                            <i class="fa-solid fa-trash action-icon delete-icon" onclick="deleteFile('${file.name}', event)"></i>
                         </td>
                     `;
                     tr.onclick = (e) => {
@@ -266,6 +269,14 @@
             });
         }
 
+        // ================= العمليات المصححة =================
+
+        // دالة مساعدة للحصول على أحدث SHA للملف من القائمة المحملة
+        function getLatestSha(filename) {
+            const file = allFiles.find(f => f.name === filename);
+            return file ? file.sha : null;
+        }
+
         async function executeUpload() {
             const fileInput = document.getElementById('fileInput');
             const folderInput = document.getElementById('folderNameInput');
@@ -273,88 +284,105 @@
             if (!file) return alert('اختر ملفاً أولاً');
             let folder = folderInput.value.trim() || 'ملفات عامة';
             const fileName = `[${folder}] ${file.name}`;
+            
             showLoader(true);
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
                 const content = reader.result.split(',')[1];
                 try {
-                    await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(fileName)}`, 'PUT', {
+                    // التحقق مما إذا كان الملف موجوداً مسبقاً للحصول على SHA (للتحديث بدلاً من الخطأ)
+                    const existingSha = getLatestSha(fileName); 
+                    
+                    const body = {
                         message: `Upload ${fileName}`,
                         content: content,
                         branch: CONFIG.branch
-                    });
+                    };
+                    // إذا الملف موجود، نرسل الـ SHA ليتم استبداله
+                    if (existingSha) body.sha = existingSha;
+
+                    await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(fileName)}`, 'PUT', body);
+                    
                     closeModal('uploadModal');
-                    fetchFiles();
-                    alert('تم الرفع! قد يستغرق الملف دقيقة ليظهر في المعاينة (بسبب تحديث GitHub Pages).');
+                    // تحديث القائمة فوراً
+                    await fetchFiles(); 
+                    alert('تم الرفع بنجاح');
                 } catch (e) { alert("فشل الرفع: " + e.message); }
                 showLoader(false);
             };
         }
 
-        async function deleteFile(name, sha, event) {
+        async function deleteFile(name, event) {
             event.stopPropagation();
             if (!confirm(`هل أنت متأكد من حذف: ${name}؟`)) return;
+            
             showLoader(true);
             try {
+                // البحث عن SHA الطازج الآن
+                const sha = getLatestSha(name);
+                if (!sha) throw new Error("الملف غير موجود في القائمة الحالية، يرجى التحديث");
+
                 await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(name)}`, 'DELETE', {
                     message: `Delete ${name}`,
-                    sha: sha,
+                    sha: sha, 
                     branch: CONFIG.branch
                 });
-                fetchFiles();
+                await fetchFiles(); // تحديث القائمة
             } catch (e) { alert("فشل الحذف: " + e.message); }
             showLoader(false);
         }
 
-        function promptRename(name, sha, event) {
+        function promptRename(name, event) {
             event.stopPropagation();
-            selectedFile = { name, sha };
+            renameTargetName = name; // نخزن الاسم فقط
             document.getElementById('renameInput').value = name;
             openModal('renameModal');
         }
 
         async function executeRename() {
             const newName = document.getElementById('renameInput').value.trim();
-            if (!newName || newName === selectedFile.name) return;
+            if (!newName || newName === renameTargetName) return;
+            
             showLoader(true);
             try {
-                const oldFile = await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(selectedFile.name)}`);
+                // 1. التأكد من وجود الملف القديم والحصول على بياناته
+                const oldFileRes = await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(renameTargetName)}`);
+                const currentSha = oldFileRes.sha; // SHA من السيرفر مباشرة
+
+                // 2. إنشاء الملف الجديد
                 await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(newName)}`, 'PUT', {
                     message: `Rename to ${newName}`,
-                    content: oldFile.content,
+                    content: oldFileRes.content,
                     branch: CONFIG.branch
                 });
-                await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(selectedFile.name)}`, 'DELETE', {
+
+                // 3. حذف الملف القديم باستخدام الـ SHA الذي جلبناه للتو
+                await apiRequest(`contents/${CONFIG.path}/${encodeURIComponent(renameTargetName)}`, 'DELETE', {
                     message: `Delete old file`,
-                    sha: selectedFile.sha,
+                    sha: currentSha,
                     branch: CONFIG.branch
                 });
+
                 closeModal('renameModal');
-                fetchFiles();
+                await fetchFiles();
             } catch (e) { alert("فشل التعديل: " + e.message); }
             showLoader(false);
         }
 
-        // ================= العارض (المعدل كلياً) =================
+        // ================= العارض =================
         function loadFileViewer(file) {
             const viewer = document.getElementById('viewer');
             const ext = file.name.split('.').pop().toLowerCase();
-            
-            // نستخدم الرابط المباشر (GitHub Pages) بدلاً من رابط التحميل (Raw)
-            // لحل مشكلة عرض HTML و PDF
             const liveUrl = getLiveUrl(file.name);
-            const downloadUrl = file.download_url; // رابط احتياطي
+            const downloadUrl = file.download_url;
             
             document.getElementById('currentFileName').innerText = file.cleanName;
             
-            // إعداد أزرار التحميل والفتح
             const dlBtn = document.getElementById('downloadBtn');
             const openBtn = document.getElementById('openNewTabBtn');
-            
             dlBtn.href = downloadUrl;
             dlBtn.style.display = 'inline-flex';
-            
             openBtn.href = liveUrl;
             openBtn.style.display = 'inline-flex';
 
@@ -368,11 +396,9 @@
                     viewer.innerHTML = `<video controls src="${liveUrl}" style="max-height:100%"></video>`;
                 }
                 else if (['pdf', 'html', 'htm', 'txt'].includes(ext)) {
-                    // الآن سيعمل الـ iframe بشكل صحيح لأننا نستخدم Live URL
                     viewer.innerHTML = `<iframe src="${liveUrl}" style="background:white;"></iframe>`;
                 }
                 else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)) {
-                    // عارض مايكروسوفت يعمل بشكل أفضل مع الروابط المباشرة
                     viewer.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(liveUrl)}"></iframe>`;
                 }
                 else {
