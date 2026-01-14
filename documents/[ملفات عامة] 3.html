@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقرير التحليلي الشامل - النهائي</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #27ae60;
+            --accent-color: #2980b9;
+            --info-bg: #e8f6f3;
+            --info-text: #145a32;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            direction: rtl;
+        }
+
+        .upload-area {
+            text-align: center;
+            padding: 40px;
+            border: 2px dashed #bdc3c7;
+            background: #fff;
+            border-radius: 12px;
+            margin: 0 auto 30px auto;
+            max-width: 800px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* حاوية الصفحة A4 */
+        .page-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: #fff;
+            padding: 10mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 1. الترويسة */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        .header-right { text-align: right; width: 30%; }
+        .header-left { text-align: left; width: 30%; direction: ltr; }
+        
+        .header-center { 
+            text-align: center; 
+            width: 40%; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .school-name-ar { font-weight: bold; font-size: 14px; margin-bottom: 2px; }
+        .school-name-en { font-size: 12px; color: #555; font-weight: 600; margin-bottom: 5px; }
+        .report-title { 
+            font-weight: bold; 
+            font-size: 18px; /* تكبير الخط قليلاً */
+            color: var(--primary-color); 
+            text-decoration: underline;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        /* 2. شريط المعلومات */
+        .info-bar {
+            background-color: var(--info-bg);
+            color: var(--info-text);
+            border: 1px solid #d1f2eb;
+            padding: 8px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .info-item span {
+            color: #0e6655;
+            margin-left: 5px;
+        }
+
+        /* 3. الجدول */
+        .table-section { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        th, td { border: 1px solid #bbb; padding: 4px; text-align: center; }
+        
+        .main-header th { background-color: var(--primary-color); color: #fff; }
+        .sub-header th { background-color: #f2f3f4; color: #333; font-size: 9px; }
+        .col-separator { border-left: 2px solid #555 !important; }
+        tr:nth-child(even) { background-color: #fafafa; }
+
+        /* 4. الرسم البياني */
+        .chart-section {
+            flex-grow: 1;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-container {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            min-height: 300px;
+        }
+
+        /* الأزرار */
+        .actions { text-align: center; margin-top: 30px; padding-bottom: 40px; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            margin: 0 5px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.1s;
+        }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .btn-upload { background-color: #3498db; }
+        .btn-print { background-color: var(--primary-color); }
+        .btn-excel { background-color: #27ae60; }
+        .btn-img { background-color: #8e44ad; }
+
+        /* تحسينات الطباعة */
+        @media print {
+            body { 
+                background: none; 
+                padding: 0; 
+                margin: 0; 
+            }
+            /* إخفاء الأزرار ومنطقة الرفع بقوة */
+            .upload-area, .actions, .btn { 
+                display: none !important; 
+            }
+            .page-container { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+                max-width: 100%;
+                padding: 5mm;
+                height: auto; /* السماح للصفحة بأخذ طولها الطبيعي */
+            }
+            /* ضمان طباعة الألوان والخلفيات */
+            .info-bar { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #e8f6f3 !important; }
+            .main-header th { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #2c3e50 !important; color: #fff !important; }
+            
+            /* منع تقسيم العناصر المهمة بين الصفحات */
+            .table-section, .chart-section, .info-bar {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="upload-area">
+    <h2>📊 نظام تحليل النتائج المدرسي</h2>
+    <p>قم برفع ملف الإكسل (XLSX) للحصول على التقرير فوراً</p>
+    <button class="btn btn-upload" onclick="document.getElementById('fileUpload').click()">📂 رفع ملف الإكسل</button>
+    <input type="file" id="fileUpload" accept=".xlsx, .xls" style="display: none;" onchange="handleFile(this)">
+</div>
+
+<div class="page-container" id="reportContainer" style="display: none;">
+    
+    <div class="header-section">
+        <div class="header-right" id="headerRight"></div>
+        <div class="header-center">
+            <div class="school-name-ar" id="schoolNameAr"></div>
+            <div class="school-name-en" id="schoolNameEn"></div>
+            <div class="report-title">تقرير تحليل نتائج الطلاب</div>
+            </div>
+        <div class="header-left" id="headerLeft"></div>
+    </div>
+
+    <div class="info-bar">
+        <div class="info-item"><span>📌 الصف الدراسي:</span> <span id="gradeName">--</span></div>
+        <div class="info-item"><span>🏫 الفصل / الشعبة:</span> <span id="sectionName">--</span></div>
+        <div class="info-item"><span>👥 عدد الطلاب:</span> <span id="totalStudents">--</span></div>
+    </div>
+
+    <div class="table-section">
+        <table id="combinedTable">
+            <thead>
+                <tr class="main-header">
+                    <th rowspan="2" style="width: 18%;">المادة الدراسية</th>
+                    <th colspan="5" class="col-separator" style="border-left: 2px solid #fff;">الأعداد (Counts)</th>
+                    <th colspan="5">النسب المئوية (Percentages)</th>
+                </tr>
+                <tr class="sub-header">
+                    <th>ضعيف</th>
+                    <th>مقبول</th>
+                    <th>جيد</th>
+                    <th>جيد جداً</th>
+                    <th class="col-separator" style="border-left: 2px solid #999;">ممتاز</th>
+                    
+                    <th>ضعيف</th>
+                    <th>مقبول</th>
+                    <th>جيد</th>
+                    <th>جيد جداً</th>
+                    <th>ممتاز</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="chart-section">
+        <div class="chart-container">
+            <canvas id="gradesChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<div class="actions" id="actionButtons" style="display: none;">
+    <button class="btn btn-print" onclick="window.print()">🖨️ طباعة التقرير</button>
+    <button class="btn btn-excel" onclick="exportToExcel()">📥 تحميل الإكسل</button>
+    <button class="btn btn-img" onclick="downloadChartImage()">🖼️ حفظ الرسم</button>
+</div>
+
+<script>
+    let globalCounts = {};
+    let globalTotalStudents = 0;
+    let globalSubjects = [];
+    const gradesOrder = ["ضعيف", "مقبول", "جيد", "جيد جداً", "ممتاز"];
+
+    function toArabicNumerals(str) {
+        if (str === null || str === undefined) return "";
+        str = str.toString();
+        const map = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+        return str.replace(/[0-9]/g, d => map[d]);
+    }
+
+    function handleFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            
+            // 1. استخراج الترويسة
+            const metaData = extractMetaData(firstSheet);
+            renderHeader(metaData);
+
+            // 2. معالجة الدرجات
+            processData(workbook);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function extractMetaData(sheet) {
+        const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+        const meta = {
+            rightLines: [],
+            leftLines: [],
+            schoolAr: "مدرسة ...",
+            schoolEn: "School Name",
+            grade: "غير محدد",
+            section: "1" // قيمة افتراضية
+        };
+
+        const limit = Math.min(json.length, 35);
+        
+        for (let i = 0; i < limit; i++) {
+            const row = json[i];
+            if (!row) continue;
+
+            row.forEach(cell => {
+                if (typeof cell !== 'string') return;
+                const txt = cell.trim();
+                if (!txt) return;
+
+                // الترويسة الجانبية
+                if (txt.includes("المملكة") || txt.includes("وزارة") || txt.includes("إدارة")) meta.rightLines.push(txt);
+                else if (txt.toLowerCase().includes("kingdom") || txt.toLowerCase().includes("ministry") || txt.toLowerCase().includes("directorate")) meta.leftLines.push(txt);
+                
+                // اسم المدرسة
+                if (txt.toLowerCase().includes("school") && !txt.toLowerCase().includes("principal")) {
+                    meta.schoolEn = txt;
+                }
+                if ((txt.includes("مدرسة") || txt.includes("ابتدائية") || txt.includes("ثانوية")) && !txt.includes("مدير")) {
+                    if (!meta.rightLines.includes(txt)) meta.schoolAr = txt;
+                }
+
+                // الصف الدراسي
+                if (i >= 15 && i <= 20) {
+                    if (txt.includes("الابتدائي") || txt.includes("المتوسط") || txt.includes("الثانوي")) {
+                        meta.grade = txt;
+                    }
+                }
+            });
+        }
+        
+        // البحث عن الفصل (محاولة عامة)
+        // نحاول البحث عن نمط "الصف : ..." أو "الفصل : ..." في رأس الجدول
+        for(let i=0; i<30; i++) {
+             if(!json[i]) continue;
+             for(let j=0; j<json[i].length; j++) {
+                 let val = (json[i][j] || "").toString();
+                 if(val.includes("الفصل") && val.length < 15) { 
+                     // إذا وجدنا كلمة فصل وقيمة قصيرة بجوارها
+                     // هذه محاولة بسيطة، لكن القيمة الافتراضية "1" موجودة
+                 }
+             }
+        }
+        
+        meta.rightLines = [...new Set(meta.rightLines)];
+        meta.leftLines = [...new Set(meta.leftLines)];
+
+        return meta;
+    }
+
+    function renderHeader(meta) {
+        document.getElementById('headerRight').innerHTML = meta.rightLines.join('<br>');
+        document.getElementById('headerLeft').innerHTML = meta.leftLines.join('<br>');
+        document.getElementById('schoolNameAr').innerText = meta.schoolAr;
+        document.getElementById('schoolNameEn').innerText = meta.schoolEn;
+        
+        document.getElementById('gradeName').innerText = meta.grade;
+        document.getElementById('sectionName').innerText = meta.section;
+
+        document.getElementById('reportContainer').style.display = 'flex';
+        document.getElementById('actionButtons').style.display = 'block';
+    }
+
+    function processData(workbook) {
+        globalSubjects = [
+             "القرآن الكريم والدراسات الإسلامية", "اللغة العربية", "الدراسات الاجتماعية",
+             "الرياضيات", "العلوم", "المهارات الرقمية", "التربية الفنية",
+             "اللغة الإنجليزية", "المهارات الحياتية والأسرية", "التربية البدنية والدفاع عن النفس"
+        ];
+        
+        globalCounts = {};
+        globalSubjects.forEach(s => globalCounts[s] = { "ضعيف": 0, "مقبول": 0, "جيد": 0, "جيد جداً": 0, "ممتاز": 0 });
+        globalTotalStudents = 0;
+
+        workbook.SheetNames.forEach(sheetName => {
+            const sheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+            if (json.length < 20) return;
+
+            let startRow = -1;
+            for(let r=0; r < Math.min(json.length, 60); r++) {
+                if(json[r]) {
+                    for(let c=0; c < json[r].length; c++) {
+                         if (typeof json[r][c] === 'string' && (json[r][c].includes("The Holy Qur'an") || json[r][c].includes("القرآن الكريم"))) {
+                             startRow = r;
+                             break;
+                         }
+                    }
+                }
+                if(startRow !== -1) break;
+            }
+
+            if (startRow !== -1) {
+                globalTotalStudents++;
+                const gradeCol = 23; 
+                for (let i=0; i<globalSubjects.length; i++) {
+                    const rowIdx = startRow + i;
+                    if(rowIdx < json.length) {
+                        const subjectName = globalSubjects[i];
+                        let grade = json[rowIdx][gradeCol];
+                        if (typeof grade === 'string') {
+                            grade = grade.trim();
+                            if (globalCounts[subjectName] && globalCounts[subjectName][grade] !== undefined) {
+                                globalCounts[subjectName][grade]++;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (globalTotalStudents > 0) {
+            document.getElementById('totalStudents').innerText = toArabicNumerals(globalTotalStudents);
+            renderCombinedTable();
+            renderChart();
+        }
+    }
+
+    function renderCombinedTable() {
+        const tbody = document.querySelector('#combinedTable tbody');
+        tbody.innerHTML = "";
+
+        globalSubjects.forEach(subject => {
+            let tr = `<tr>`;
+            tr += `<td style="font-weight:bold; text-align:right;">${subject}</td>`;
+            
+            gradesOrder.forEach((g, idx) => {
+                const val = globalCounts[subject][g];
+                const borderStyle = (idx === gradesOrder.length - 1) ? 'border-left: 2px solid #999;' : '';
+                tr += `<td style="${borderStyle}">${toArabicNumerals(val)}</td>`;
+            });
+
+            gradesOrder.forEach(g => {
+                const val = globalCounts[subject][g];
+                const pct = globalTotalStudents > 0 ? ((val/globalTotalStudents)*100).toFixed(1) : "0";
+                tr += `<td>${toArabicNumerals(pct)}%</td>`;
+            });
+
+            tr += `</tr>`;
+            tbody.innerHTML += tr;
+        });
+    }
+
+    function renderChart() {
+        const ctx = document.getElementById('gradesChart').getContext('2d');
+        const colors = { "ممتاز": "#27ae60", "جيد جداً": "#2980b9", "جيد": "#f1c40f", "مقبول": "#e67e22", "ضعيف": "#c0392b" };
+
+        const datasets = gradesOrder.reverse().map(g => ({
+            label: g,
+            data: globalSubjects.map(s => globalCounts[s][g]),
+            backgroundColor: colors[g],
+            borderWidth: 1
+        }));
+
+        if (window.myChart) window.myChart.destroy();
+        Chart.defaults.font.family = "'Cairo', sans-serif";
+        
+        window.myChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: globalSubjects, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { font: { size: 11, weight: 'bold' } }, grid: { display: false } },
+                    y: { position: 'right', ticks: { callback: v => toArabicNumerals(v) }, title: { display: true, text: 'عدد الطلاب' } }
+                },
+                plugins: {
+                    legend: { position: 'top', rtl: true },
+                    title: { display: true, text: 'توزيع تقديرات الطلاب حسب المواد' }
+                }
+            }
+        });
+    }
+
+    function exportToExcel() {
+        if (globalTotalStudents === 0) return;
+        let dataForExcel = [];
+        
+        globalSubjects.forEach(subject => {
+            let rowObj = { "المادة": subject };
+            gradesOrder.forEach(g => rowObj[`عدد (${g})`] = globalCounts[subject][g]);
+            gradesOrder.forEach(g => {
+                const val = globalCounts[subject][g];
+                rowObj[`نسبة (${g}) %`] = globalTotalStudents > 0 ? ((val/globalTotalStudents)*100).toFixed(1)+"%" : "0%";
+            });
+            dataForExcel.push(rowObj);
+        });
+
+        const ws = XLSX.utils.json_to_sheet(dataForExcel);
+        const wscols = [{wch: 25}]; 
+        for(let i=0; i<10; i++) wscols.push({wch: 10});
+        ws['!cols'] = wscols;
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "التحليل");
+        XLSX.writeFile(wb, "تحليل_النتائج.xlsx");
+    }
+
+    function downloadChartImage() {
+        const canvas = document.getElementById('gradesChart');
+        const link = document.createElement('a');
+        link.download = 'chart-analysis.png';
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+    }
+</script>
+
+</body>
+</html>
