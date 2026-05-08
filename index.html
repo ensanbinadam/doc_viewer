@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>مستعرض مستندات وملفات منوعة</title>
+    <link rel="icon" href="favicon.ico" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -489,6 +490,7 @@
 
         const DOCUMENTS_DIR = "documents";
         const INDEX_URL = `${DOCUMENTS_DIR}/index.json`;
+        const PAGES_INDEX_URL = "documents-index.json";
         const GITHUB_CONFIG = {
           owner: "",
           repo: "",
@@ -587,6 +589,15 @@
           return Array.from(
             document.querySelectorAll("#file-list tr:not(.folder-header)")
           ).filter((row) => row.dataset.folder === folderName);
+        }
+
+        function isLocalPage() {
+          return (
+            window.location.protocol === "file:" ||
+            ["", "localhost", "127.0.0.1", "::1"].includes(
+              window.location.hostname
+            )
+          );
         }
 
         function getGithubInfo() {
@@ -730,14 +741,15 @@
             });
         }
 
-        async function loadFilesFromIndex() {
-          const res = await fetch(`${INDEX_URL}?v=${Date.now()}`, {
+        async function loadFilesFromIndex(indexUrl) {
+          const res = await fetch(`${indexUrl}?v=${Date.now()}`, {
             cache: "no-store",
           });
           if (!res.ok)
-            throw new Error(`تعذر تحميل ${INDEX_URL} (HTTP ${res.status})`);
+            throw new Error(`تعذر تحميل ${indexUrl} (HTTP ${res.status})`);
 
-          const data = await res.json();
+          const text = await res.text();
+          const data = JSON.parse(text.replace(/^\uFEFF/, ""));
           const files = Array.isArray(data) ? data : data.files || [];
 
           // إزالة index.json نفسه من القائمة (اختياري)
@@ -753,11 +765,27 @@
         }
 
         async function loadIndex() {
+          const errors = [];
+          const indexUrls = isLocalPage()
+            ? [INDEX_URL, PAGES_INDEX_URL]
+            : [PAGES_INDEX_URL, INDEX_URL];
+
+          for (const indexUrl of indexUrls) {
+            try {
+              const files = await loadFilesFromIndex(indexUrl);
+              if (files.length) return files;
+              errors.push(`${indexUrl}: لا يحتوي على ملفات`);
+            } catch (indexError) {
+              errors.push(`${indexUrl}: ${indexError.message}`);
+            }
+          }
+
           try {
             return await loadFilesFromGithub();
           } catch (githubError) {
-            console.info("Using documents/index.json fallback:", githubError);
-            return loadFilesFromIndex();
+            errors.push(`GitHub API: ${githubError.message}`);
+            console.info("Document index loading failed:", errors);
+            throw new Error(errors.join(" | "));
           }
         }
 
