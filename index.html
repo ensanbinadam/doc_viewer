@@ -171,16 +171,6 @@
         border-radius: 8px;
       }
 
-      #file-table td.col-seq {
-        width: 30px;
-        text-align: center;
-        color: var(--light-text);
-        font-weight: 600;
-      }
-      #file-table tbody tr.active td.col-seq {
-        color: rgba(255, 255, 255, 0.85) !important;
-      }
-
       #file-table td.col-name {
         white-space: normal;
         word-wrap: break-word;
@@ -431,7 +421,6 @@
           <table id="file-table">
             <thead>
               <tr>
-                <th class="col-seq">#</th>
                 <th class="col-name">اسم الملف</th>
                 <th class="col-type">النوع</th>
               </tr>
@@ -535,6 +524,17 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+        }
+
+        function removeExtension(filename) {
+          const lastDotIndex = String(filename).lastIndexOf(".");
+          return lastDotIndex > 0 ? String(filename).slice(0, lastDotIndex) : filename;
+        }
+
+        function getDisplayName(name) {
+          return String(name)
+            .replace(/^[\u200e\u200f\s]*[0-9٠-٩۰-۹]+[\s._\-–—،)]+/, "")
+            .trim();
         }
 
         function getGithubInfo() {
@@ -759,11 +759,11 @@
             header.dataset.isExpanded = isFirstFolder ? "true" : "false";
 
             header.innerHTML = `
-              <td colspan="3" class="folder-header-content">
+              <td colspan="2" class="folder-header-content">
                 <div class="folder-title">
                   <i class="fa-solid fa-chevron-left arrow-icon"></i>
                   <i class="fa-solid fa-folder-open folder-icon"></i>
-                  <span>${escapeHtml(folderName)}</span>
+                  <span>${escapeHtml(getDisplayName(folderName))}</span>
                   <span class="file-count">(${folderFiles.length})</span>
                 </div>
               </td>
@@ -771,7 +771,6 @@
             fileListElement.appendChild(header);
             header.addEventListener("click", toggleFolderVisibility);
 
-            let seq = 1;
             for (const fileData of folderFiles) {
               const tr = document.createElement("tr");
               const fileType = getFileType(fileData.name);
@@ -785,10 +784,8 @@
               if (!isFirstFolder) tr.style.display = "none";
 
               tr.innerHTML = `
-                <td class="col-seq">${seq++}</td>
                 <td class="col-name">${escapeHtml(
-                  fileData.name.substring(0, fileData.name.lastIndexOf(".")) ||
-                    fileData.name
+                  getDisplayName(removeExtension(fileData.name))
                 )}</td>
                 <td class="col-type"><i class="${getFileIconClass(
                   fileData.name
