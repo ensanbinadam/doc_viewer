@@ -483,8 +483,13 @@
         const searchElement = document.getElementById("search-input");
         const darkModeToggle = document.getElementById("dark-mode-toggle");
 
-        const INDEX_URL = "documents/index.json";
-        const BRANCH = "main";
+        const DOCUMENTS_DIR = "documents";
+        const INDEX_URL = `${DOCUMENTS_DIR}/index.json`;
+        const GITHUB_CONFIG = {
+          owner: "",
+          repo: "",
+          branch: "main",
+        };
 
         const defaultFile = "تعليمات.pdf";
         const pinnedFiles = ["تعليمات.pdf"];
@@ -519,8 +524,50 @@
 
         function normalizePath(p) {
           p = String(p || "");
-          p = p.replace(/^\.?\/*documents\//i, "");
+          p = p.replace(new RegExp(`^\\.?\\/*${DOCUMENTS_DIR}\\/`, "i"), "");
           return p;
+        }
+
+        function escapeHtml(value) {
+          return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+
+        function getGithubInfo() {
+          if (GITHUB_CONFIG.owner && GITHUB_CONFIG.repo) {
+            return {
+              owner: GITHUB_CONFIG.owner,
+              repo: GITHUB_CONFIG.repo,
+              branch: GITHUB_CONFIG.branch,
+            };
+          }
+
+          const githubPagesSuffix = ".github.io";
+          if (!window.location.hostname.endsWith(githubPagesSuffix)) return null;
+
+          const owner = window.location.hostname.slice(
+            0,
+            -githubPagesSuffix.length
+          );
+          const parts = window.location.pathname.split("/").filter(Boolean);
+          const repo = parts[0] || `${owner}${githubPagesSuffix}`;
+
+          return { owner, repo, branch: GITHUB_CONFIG.branch };
+        }
+
+        function getGithubRawUrl(filepath) {
+          const githubInfo = getGithubInfo();
+          if (!githubInfo || !githubInfo.branch) return "";
+
+          return `https://raw.githubusercontent.com/${githubInfo.owner}/${
+            githubInfo.repo
+          }/${githubInfo.branch}/${DOCUMENTS_DIR}/${toUrlPath(
+            normalizePath(filepath)
+          )}`;
         }
 
         function getFileType(filename) {
@@ -593,7 +640,47 @@
           }
         }
 
-        async function loadIndex() {
+        async function loadFilesFromGithub() {
+          const githubInfo = getGithubInfo();
+          if (!githubInfo || !githubInfo.branch) {
+            throw new Error("لا يمكن تحديد مستودع GitHub من رابط الصفحة.");
+          }
+
+          const apiUrl = `https://api.github.com/repos/${githubInfo.owner}/${
+            githubInfo.repo
+          }/git/trees/${encodeURIComponent(githubInfo.branch)}?recursive=1`;
+          const res = await fetch(apiUrl, { cache: "no-store" });
+          if (!res.ok) {
+            throw new Error(`تعذر تحميل قائمة الملفات من GitHub (HTTP ${res.status})`);
+          }
+
+          const data = await res.json();
+          if (!Array.isArray(data.tree)) {
+            throw new Error("استجابة GitHub لا تحتوي على قائمة ملفات صالحة.");
+          }
+
+          const prefix = `${DOCUMENTS_DIR}/`;
+          return data.tree
+            .filter((item) => item.type === "blob" && item.path.startsWith(prefix))
+            .map((item) => normalizePath(item.path))
+            .filter((path) => {
+              const parts = path.split("/");
+              const name = parts[parts.length - 1] || "";
+              return (
+                name &&
+                !name.startsWith(".") &&
+                name.toLowerCase() !== "index.json"
+              );
+            })
+            .map((path) => {
+              const parts = path.split("/");
+              const name = parts[parts.length - 1];
+              const folder = parts.length > 1 ? parts[0] : GENERAL_FOLDER;
+              return { name, path, folder };
+            });
+        }
+
+        async function loadFilesFromIndex() {
           const res = await fetch(`${INDEX_URL}?v=${Date.now()}`, {
             cache: "no-store",
           });
@@ -611,8 +698,17 @@
                 !(
                   String(f.name).toLowerCase() === "index.json" &&
                   String(normalizePath(f.path)).toLowerCase() === "index.json"
-                )
+              )
             );
+        }
+
+        async function loadIndex() {
+          try {
+            return await loadFilesFromGithub();
+          } catch (githubError) {
+            console.info("Using documents/index.json fallback:", githubError);
+            return loadFilesFromIndex();
+          }
         }
 
         function renderFoldersAndFiles(filesData) {
@@ -667,7 +763,7 @@
                 <div class="folder-title">
                   <i class="fa-solid fa-chevron-left arrow-icon"></i>
                   <i class="fa-solid fa-folder-open folder-icon"></i>
-                  <span>${folderName}</span>
+                  <span>${escapeHtml(folderName)}</span>
                   <span class="file-count">(${folderFiles.length})</span>
                 </div>
               </td>
@@ -690,10 +786,10 @@
 
               tr.innerHTML = `
                 <td class="col-seq">${seq++}</td>
-                <td class="col-name">${
+                <td class="col-name">${escapeHtml(
                   fileData.name.substring(0, fileData.name.lastIndexOf(".")) ||
-                  fileData.name
-                }</td>
+                    fileData.name
+                )}</td>
                 <td class="col-type"><i class="${getFileIconClass(
                   fileData.name
                 )}"></i></td>
@@ -895,9 +991,12 @@
               "xltm",
             ].includes(ext)
           ) {
-            const username = window.location.hostname.split(".")[0];
-            const repo = window.location.pathname.split("/")[1];
-            const rawFileUrl = `https://raw.githubusercontent.com/${username}/${repo}/${BRANCH}/documents/${encodedPath}`;
+            const rawFileUrl = getGithubRawUrl(cleanPath);
+            if (!rawFileUrl) {
+              viewerElement.innerHTML =
+                '<div class="loader-message">عرض ملفات Office يحتاج نشر الموقع على GitHub Pages أو ضبط بيانات المستودع داخل الكود.</div>';
+              return;
+            }
             const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
               rawFileUrl
             )}`;
@@ -923,7 +1022,9 @@
             searchElement.addEventListener("input", searchAndFilterFiles);
           } catch (e) {
             viewerElement.innerHTML = `<div class="loader-message" style="color:#e74c3c;">
-              فشل تحميل فهرس الملفات. تأكد من وجود <b>documents/index.json</b>.<br>${e.message}
+              تعذر قراءة ملفات مجلد <b>documents</b>.<br>
+              عند النشر على GitHub Pages ستقرأ الصفحة الملفات تلقائياً من المستودع.
+              وعند التشغيل المحلي تأكد من تشغيل الصفحة عبر خادم محلي ووجود <b>documents/index.json</b> كخيار احتياطي.<br>${e.message}
             </div>`;
           }
         }
